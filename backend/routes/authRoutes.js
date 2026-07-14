@@ -1,0 +1,288 @@
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { User, Otp } from '../models/User.js';
+import 'dotenv/config';
+import passport from "passport";
+import "../config/passport.js";
+
+
+import { sendOtpEmail } from '../config/mailer.js';
+
+// Secret keys (Keep these in your .env file)
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+
+
+
+const router = express.Router();
+
+// 1. REGISTER - Generate & Send OTP
+router.post('/register', async (req, res) => {
+  try {
+    const { fullName, email, mobileNumber, password } = req.body;
+
+    // Check user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+
+    // Generate 6 Digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Hash Password before keeping it temporarily
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Save registration info + OTP temporary store down check query
+    await Otp.findOneAndDelete({ email }); // Delete old OTP if any
+
+    await Otp.create({
+      email,
+      fullName,
+      mobileNumber,
+      password: hashedPassword,
+      otp
+    });
+
+    // Send Mail
+    await sendOtpEmail(email, otp);
+
+    res.status(200).json({ success: true, message: "OTP sent to email successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 2. VERIFY OTP - Create Permanent User
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find temporary entry
+    const otpRecord = await Otp.findOne({ email, otp });
+    console.log({ email, otp });
+
+    if (!otpRecord) return res.status(400).json({ message: "Invalid OTP or Expired" });
+
+    // Move data to main User Schema (Address is skipped/empty by default)
+    const newUser = new User({
+      fullName: otpRecord.fullName,
+      email: otpRecord.email,
+      mobileNumber: otpRecord.mobileNumber,
+      password: otpRecord.password, // already hashed
+      // address uses schema defaults implicitly
+    });
+
+    await newUser.save();
+
+    // Clear OTP database entry
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    res.status(200).json({ success: true, message: "User registered successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// 3. LOGIN - Verify Credentials & Return User Data
+// router.post('/login', async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // 1. Find user by email
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ message: "Invalid Email or Password" });
+//     }
+
+//     // 2. Compare hashed password
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid Email or Password" });
+//     }
+
+//     // 3. Return user data (Exclude password for security)
+//     const userData = {
+//       id: user._id,
+//       fullName: user.fullName,
+//       email: user.email,
+//       mobileNumber: user.mobileNumber,
+//       isAdmin: user.isAdmin,
+//       address: user.address // This will send empty fields if not updated yet
+//     };
+
+//     // 3. Generate Tokens (Payload la role based authorization-ku 'isAdmin' add panrom)
+//     const accessToken = jwt.sign(
+//         { id: user.id, isAdmin: user.isAdmin },
+//         ACCESS_TOKEN_SECRET,
+//         { expiresIn: '59m' }
+//     );
+
+//     const refreshToken = jwt.sign(
+//         { id: user.id },
+//         REFRESH_TOKEN_SECRET,
+//         { expiresIn: '7d' }
+//     );
+
+//     // 4. Send Refresh Token inside an HTTP-Only Cookie (Highly Secure)
+//     res.cookie('refreshToken', refreshToken, {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV === 'production', // true in production
+//         sameSite: 'Strict',
+//         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       accessToken,
+//       message: "Login successful!",
+//       user: userData
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+
+router.post(
+
+  "/login",
+
+  passport.authenticate(
+    "local",
+    {
+      session: false
+    }
+  ),
+
+  (req, res) => {
+
+    const { user } = req
+    try {
+
+      // 3. Return user data (Exclude password for security)
+      const userData = {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        mobileNumber: user.mobileNumber,
+        isAdmin: user.isAdmin,
+        address: user.address // This will send empty fields if not updated yet
+      };
+
+      // 3. Generate Tokens (Payload la role based authorization-ku 'isAdmin' add panrom)
+      const accessToken = jwt.sign(
+        { id: user.id, isAdmin: user.isAdmin },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: '59m' }
+      );
+
+      const refreshToken = jwt.sign(
+        { id: user.id },
+        REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' }
+      );
+
+
+      // 4. Send Refresh Token inside an HTTP-Only Cookie (Highly Secure)
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // true in production
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+        message: "Login successful!",
+        user: userData
+      });
+
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+);
+
+
+
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
+
+router.get(
+  "/google/callback",
+
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login",
+  }),
+
+  (req, res) => {
+    res.redirect("/");
+  
+
+  }
+);
+
+
+
+
+// 4. UPDATE PROFILE - Modify standard fields and address info
+router.put('/update-profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { fullName, mobileNumber, billingAddress } = req.body;
+
+    // Direct object key mapping alignment inside MongoDB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          fullName: fullName,
+          mobileNumber: mobileNumber,
+          // mapping billingAddress elements into schema definitions
+          "address.address": billingAddress.address,
+          "address.state": billingAddress.state,
+          "address.district": billingAddress.district,
+          "address.pincode": billingAddress.pincode
+        }
+      },
+      { new: true } // Returns updated schema instance directly instead of old state
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Prepare fresh sanitised response
+    const userData = {
+      id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      mobileNumber: updatedUser.mobileNumber,
+      isAdmin: updatedUser.isAdmin,
+      address: updatedUser.address
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully!",
+      user: userData
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+export default router;
