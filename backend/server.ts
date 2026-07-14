@@ -3,11 +3,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import connectDB from './backend/database.js'; 
-import productRoutes from './backend/routes/productRoutes.js'
-import authRoutes from './backend/routes/authRoutes.js'
-import checkout from './backend/routes/orders.js'
-import passport from "./backend/config/passport.js";
+import connectDB from './database.js';
+import productRoutes from './routes/productRoutes.js'
+import authRoutes from './routes/authRoutes.js'
+import checkout from './routes/orders.js'
+import passport from "./config/passport.js";
 
 
 
@@ -330,7 +330,7 @@ let consultations = [
 export const getLoggedUser = (req: express.Request) => {
   const authHeader = req.headers.authorization;
   console.log("authheader", authHeader);
-  
+
   if (!authHeader) return null;
   const userId = authHeader.replace("Bearer ", "");
   return users.find(u => u.id === userId) || null;
@@ -399,10 +399,10 @@ app.put("/api/auth/profile/update", (req, res) => {
   const user = getLoggedUser(req);
   if (!user) return res.status(401).json({ error: "Unauthorized user." });
   const { fullName, mobileNumber, address, state, district, pincode } = req.body;
-  
+
   user.fullName = fullName || user.fullName;
   user.mobileNumber = mobileNumber || user.mobileNumber;
-  
+
   if (address || state || district || pincode) {
     user.address = {
       address: address || (user.address?.address || ""),
@@ -431,9 +431,9 @@ app.put("/api/auth/profile/update", (req, res) => {
 // app.post("/api/products/manage", (req, res) => {
 //   const user = getLoggedUser(req);
 //   if (!user || !user.isAdmin) return res.status(403).json({ error: "Access forbidden. Admin privilege required." });
-  
+
 //   const { name, price, discountPrice, stock, category, description, ingredients, benefits, usageInstructions, images } = req.body;
-  
+
 //   if (!name || !price || !category || !description) {
 //     return res.status(400).json({ error: "Name, price, category and description are required requirements." });
 //   }
@@ -461,7 +461,7 @@ app.put("/api/auth/profile/update", (req, res) => {
 app.put("/api/products/manage/:id", (req, res) => {
   const user = getLoggedUser(req);
   if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin privilege required." });
-  
+
   const product = products.find(p => p.id === req.params.id);
   if (!product) return res.status(404).json({ error: "Product not found." });
 
@@ -484,10 +484,10 @@ app.put("/api/products/manage/:id", (req, res) => {
 app.delete("/api/products/manage/:id", (req, res) => {
   const user = getLoggedUser(req);
   if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin access demanded." });
-  
+
   const initialLen = products.length;
   products = products.filter(p => p.id !== req.params.id);
-  
+
   if (products.length === initialLen) {
     return res.status(404).json({ error: "Product to delete not found." });
   }
@@ -499,7 +499,7 @@ app.post("/api/products/:id/review", (req, res) => {
   const user = getLoggedUser(req);
   const username = user ? user.fullName : "Guest Buyer";
   const { rating, comment } = req.body;
-  
+
   const product = products.find(p => p.id === req.params.id);
   if (!product) return res.status(404).json({ error: "Product not found." });
 
@@ -523,7 +523,7 @@ app.post("/api/products/:id/review", (req, res) => {
 // app.get("/api/orders", (req, res) => {
 //   const user = getLoggedUser(req);
 //   if (!user) return res.status(401).json({ error: "Unauthorized user." });
-  
+
 //   const userOrders = orders.filter(o => o.userId === user.id);
 //   res.json(userOrders);
 // });
@@ -638,7 +638,7 @@ app.get("/api/blogs", (req, res) => {
 app.post("/api/blogs/manage", (req, res) => {
   const user = getLoggedUser(req);
   if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin privilege demanded." });
-  
+
   const { title, content, category, author, image } = req.body;
   if (!title || !content || !category) {
     return res.status(400).json({ error: "Title, content, and category are required parameters." });
@@ -739,7 +739,7 @@ app.post("/api/coupons/manage", (req, res) => {
 app.get("/api/admin/users", (req, res) => {
   const user = getLoggedUser(req);
   if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin access forbidden." });
-  
+
   // Return non-sensitive details, with order totals if possible
   const customersList = users.map(u => {
     const userOrders = orders.filter(o => o.userId === u.id);
@@ -769,7 +769,7 @@ app.get("/api/admin/analytics", (req, res) => {
 
   // Derive top products sold
   const productSalesMap: { [key: string]: { name: string, quantity: number, revenue: number } } = {};
-  
+
   orders.forEach(o => {
     o.items.forEach(item => {
       if (!productSalesMap[item.productId]) {
@@ -783,7 +783,7 @@ app.get("/api/admin/analytics", (req, res) => {
   const topProducts = Object.keys(productSalesMap).map(id => ({
     id,
     ...productSalesMap[id]
-  })).sort((a,b) => b.quantity - a.quantity);
+  })).sort((a, b) => b.quantity - a.quantity);
 
   // Category wise sales analysis
   const categorySales: { [key: string]: number } = {};
@@ -894,7 +894,7 @@ You can ask me questions about:
 
 *Disclaimer: AI consultations are strictly educational. If you have severe symptoms, please book an online appointment with our chief MS/BSMS doctor.*`;
     }
-    
+
     return res.json({ response: responseText });
   }
 
@@ -925,7 +925,7 @@ CRITICAL RULE: Always format output in elegant Markdown. Include a tiny friendly
     // To simple query
     const fullHistoryStr = (chatHistory || []).map((h: any) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join("\n");
     const userMessage = `${fullHistoryStr}\nUser: ${message}`;
-    
+
     const response = await chat.sendMessage({
       message: userMessage
     });
@@ -940,19 +940,19 @@ CRITICAL RULE: Always format output in elegant Markdown. Include a tiny friendly
 
 // Serve static assets in production or development Vite integration
 const startServer = async () => {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+  // if (process.env.NODE_ENV !== "production") {
+  //   const vite = await createViteServer({
+  //     server: { middlewareMode: true },
+  //     appType: "spa",
+  //   });
+  //   app.use(vite.middlewares);
+  // } else {
+  //   const distPath = path.join(process.cwd(), "dist");
+  //   app.use(express.static(distPath));
+  //   app.get("*", (req, res) => {
+  //     res.sendFile(path.join(distPath, "index.html"));
+  //   });
+  // }
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Siddha Clinic App running on port http://localhost:${PORT}`);

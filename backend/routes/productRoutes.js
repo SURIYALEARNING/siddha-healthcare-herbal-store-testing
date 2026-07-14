@@ -1,7 +1,7 @@
 import express from "express";
 import Product from "../models/Product.js";
 import { verifyToken, verifyAdmin } from '../Auth/authMiddleware.js'
-import {getLoggedUser} from '../../server.js'
+import { getLoggedUser } from '../server.js'
 
 const router = express.Router();
 
@@ -32,9 +32,9 @@ router.get("/", async (req, res) => {
 // @access  Private (Admin Only)
 router.post("/manage", verifyAdmin, async (req, res) => {
   console.log("product create");
-  
+
   try {
-  
+
 
     const { name, price, discountPrice, stock, category, description, ingredients, benefits, usageInstructions, images } = req.body;
 
