@@ -8,6 +8,7 @@ import productRoutes from './routes/productRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import checkout from './routes/orders.js'
 import passport from "./config/passport.js";
+import cors from "cors";
 
 
 
@@ -17,9 +18,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+app.use(cors());
 console.log(PORT);
 app.use(passport.initialize());
 app.use(express.json());
+
 
 // In-Memory Databases (Seeded)
 let users = [

@@ -124,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
       console.log("GET PRODUCT", accessToken);
-      const res = await fetch("/api/products", {
+      const res = await fetch("http://localhost:5000/api/products", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -397,7 +397,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const subtotal = cart.reduce((sum, item) => sum + (item.discountPrice * item.quantity), 0);
     const discount = activeCoupon ? Math.round(subtotal * (activeCoupon.percent / 100)) : 0;
     const total = subtotal - discount;
-console.log(cart);
+    console.log(cart);
 
     const checkoutPayload = {
       items: cart.map(c => ({
@@ -416,7 +416,7 @@ console.log(cart);
       fullName,
       paymentMethod
     };
-  
+
 
     try {
       const accessToken = localStorage.getItem('accessToken')
