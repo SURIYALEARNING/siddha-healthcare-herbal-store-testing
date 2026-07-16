@@ -12,17 +12,18 @@ export interface CheckoutPayload {
   email: string;
   fullName: string;
   paymentMethod: string;
+  razorpayPaymentId?: string;
 }
 
 interface SubmitOrderResponse {
   order: Order;
 }
 
-export const fetchUserOrdersApi = async (userId: string): Promise<Order[]> => {
+export const fetchUserOrdersApi = async (): Promise<Order[]> => {
   try {
-    const res = await client.get("/api/orders", {
-      headers: { Authorization: `Bearer ${userId}` },
-    });
+    const res = await client.get("/api/admin/orders");
+   
+    
     return res.data;
   } catch (error) {
     handleApiError("fetchUserOrdersApi", error);
@@ -31,7 +32,7 @@ export const fetchUserOrdersApi = async (userId: string): Promise<Order[]> => {
 
 export const submitOrderApi = async (payload: CheckoutPayload): Promise<SubmitOrderResponse> => {
   try {
-    const res = await client.post("/api/orders", payload);
+    const res = await client.post("/api/admin/orders", payload);
     return res.data;
   } catch (error) {
     handleApiError("submitOrderApi", error);
@@ -40,7 +41,7 @@ export const submitOrderApi = async (payload: CheckoutPayload): Promise<SubmitOr
 
 export const trackOrderApi = async (orderId: string): Promise<Order> => {
   try {
-    const res = await client.get(`/api/orders/track/${orderId}`);
+    const res = await client.get(`/api/admin/orders/track/${orderId}`);
     return res.data;
   } catch (error) {
     handleApiError("trackOrderApi", error);

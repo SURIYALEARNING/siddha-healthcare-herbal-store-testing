@@ -7,6 +7,7 @@ import ProductsTab from "../components/admin/ProductsTab";
 import OrdersTab from "../components/admin/OrdersTab";
 import CouponsTab from "../components/admin/CouponsTab";
 import ConsultationsTab from "../components/admin/ConsultationsTab";
+import ShippingTab from "../components/admin/ShippingTab";
 import type { TabId } from "../components/admin/AdminHeader";
 import type { Consultation } from "../types";
 
@@ -65,9 +66,7 @@ export default function Admin() {
         />
       )}
 
-      {activeTab === "orders" && (
-        <OrdersTab orders={orders} onUpdateStatus={adminUpdateOrderStatus} />
-      )}
+
 
       {activeTab === "coupons" && (
         <CouponsTab coupons={coupons} onCreateCoupon={adminAddCoupon} />
@@ -75,6 +74,14 @@ export default function Admin() {
 
       {activeTab === "consultations" && (
         <ConsultationsTab consultations={consultations} />
+      )}
+
+      {activeTab === "orders" && (
+        <OrdersTab orders={orders} onUpdateStatus={adminUpdateOrderStatus} />
+      )}
+
+      {activeTab === "shipping" && (
+        <ShippingTab />
       )}
     </div>
   );

@@ -1,0 +1,85 @@
+import { ShoppingBag, ShieldCheck } from "lucide-react";
+
+interface OrderSummaryProps {
+  cart: { productId: string; name: string; discountPrice: number; quantity: number; image: string }[];
+  subtotal: number;
+  discountAmount: number;
+  deliveryCharges: number;
+  total: number;
+  hasCoupon: boolean;
+  orderSubmitting: boolean;
+  paymentMethod: string;
+}
+
+export default function OrderSummary({
+  cart, subtotal, discountAmount, deliveryCharges, total, hasCoupon, orderSubmitting, paymentMethod,
+}: OrderSummaryProps) {
+  const isRazorpay = paymentMethod !== "Cash on Delivery";
+
+  return (
+    <div className="lg:col-span-4 bg-white border border-gray-100 rounded-3xl p-6 sticky top-24 shadow-xs space-y-6">
+      <h3 className="text-base font-bold font-display text-emerald-950 flex items-center">
+        <ShoppingBag className="w-4.5 h-4.5 text-siddha-dark mr-1.5" />
+        Order Preview ({cart.length})
+      </h3>
+
+      <div className="max-h-56 overflow-y-auto divide-y divide-gray-100 pr-1 space-y-3">
+        {cart.map((item) => (
+          <div key={item.productId} className="flex items-center space-x-3 pt-3 first:pt-0">
+            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg border border-gray-100" />
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-bold text-emerald-950 truncate">{item.name}</h4>
+              <p className="text-[10px] text-gray-400 font-semibold mt-0.5">₹{item.discountPrice} x {item.quantity}</p>
+            </div>
+            <span className="text-xs font-bold text-gray-800">₹{item.discountPrice * item.quantity}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="border-t border-gray-100 pt-4 space-y-3.5 text-xs text-gray-500 font-medium">
+        <div className="flex justify-between">
+          <span>Items Total:</span>
+          <span className="text-gray-800 font-bold">₹{subtotal}</span>
+        </div>
+
+        {hasCoupon && (
+          <div className="flex justify-between text-emerald-700 font-bold">
+            <span>Coupon Applied Deduction:</span>
+            <span>- ₹{discountAmount}</span>
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          <span>Delivery Shipping:</span>
+          {deliveryCharges === 0 ? (
+            <span className="text-emerald-700 font-black">FREE</span>
+          ) : (
+            <span className="text-gray-800 font-bold">₹{deliveryCharges}</span>
+          )}
+        </div>
+
+        <div className="border-t border-gray-100 pt-4 flex justify-between text-lg font-black text-gray-800">
+          <span>Grand Total cost:</span>
+          <span className="text-siddha-dark">₹{total}</span>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        className="w-full py-4 bg-siddha-gold hover:bg-yellow-500 text-siddha-dark font-black text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer shadow-lg shadow-yellow-500/10 disabled:opacity-55 disabled:cursor-not-allowed h-12"
+        disabled={orderSubmitting}
+      >
+        {orderSubmitting ? (
+          <span>{isRazorpay ? "Processing Payment..." : "Queueing formulation..."}</span>
+        ) : (
+          <span>{isRazorpay ? `Pay ₹${total} (Razorpay)` : `Authorize Order Purchase (₹${total})`}</span>
+        )}
+      </button>
+
+      <div className="pt-2 flex items-center justify-center space-x-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <span>Ayush Verified Sourcing</span>
+      </div>
+    </div>
+  );
+}

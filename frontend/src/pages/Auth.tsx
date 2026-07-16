@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { CheckCircle2 } from "lucide-react";
 import { sendOtpApi, verifyOtpApi } from "../api";
@@ -10,11 +10,48 @@ import RegisterForm from "../components/auth/RegisterForm";
 import OtpScreen from "../components/auth/OtpScreen";
 import ForgotPassword from "../components/auth/ForgotPassword";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
-import QuickCredentials from "../components/auth/QuickCredentials";
+
 
 export default function Auth() {
-  const { loginUser, error } = useApp();
+  const { loginUser, googleAuth, updateUserProfile, error } = useApp();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const [googleMobile, setGoogleMobile] = useState("");
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
+  const [googleUserData, setGoogleUserData] = useState<{ user: any; accessToken: string } | null>(null);
+
+  useEffect(() => {
+    const accessToken = searchParams.get("accessToken");
+    const userParam = searchParams.get("user");
+    if (accessToken && userParam) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        googleAuth(accessToken, userData);
+        if (!userData.mobileNumber) {
+          setGoogleUserData({ user: userData, accessToken });
+        } else {
+          navigate(userData.isAdmin ? "/admin" : "/account", { replace: true });
+        }
+      } catch (e) {
+        console.error("Google auth failed:", e);
+      }
+    }
+  }, [searchParams, googleAuth, navigate]);
+
+  const handleGoogleMobileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[0-9]{10}$/.test(googleMobile)) return;
+    if (!googleUserData) return;
+    setGoogleSubmitting(true);
+    const ok = await updateUserProfile(googleUserData.user.fullName, googleMobile, {
+      address: "", state: "", district: "", pincode: "",
+    });
+    setGoogleSubmitting(false);
+    if (ok) {
+      navigate(googleUserData.user.isAdmin ? "/admin" : "/account", { replace: true });
+    }
+  };
 
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
@@ -82,7 +119,34 @@ export default function Auth() {
 
   return (
     <AuthLayout>
-      {showOtp ? (
+      {googleUserData ? (
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-bold font-display text-emerald-950">Complete Your Profile</h2>
+            <p className="text-xs text-gray-400">Welcome {googleUserData.user.fullName}! Please provide your mobile number to continue.</p>
+          </div>
+          <form onSubmit={handleGoogleMobileSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-400 uppercase">10-Digit Mobile Number *</label>
+              <input
+                type="text" placeholder="Ex. 9876543210" value={googleMobile}
+                onChange={(e) => setGoogleMobile(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-150 focus:border-siddha-dark focus:bg-white text-xs rounded-xl focus:outline-none text-gray-800 font-medium font-mono"
+                required
+              />
+            </div>
+            {error && (
+              <p className="p-3 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl text-xs font-bold">{error}</p>
+            )}
+            <button
+              type="submit" disabled={googleSubmitting || !/^[0-9]{10}$/.test(googleMobile)}
+              className="w-full py-3 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+            >
+              {googleSubmitting ? "Saving..." : "Save & Continue"}
+            </button>
+          </form>
+        </div>
+      ) : showOtp ? (
         <OtpScreen
           email={email}
           otpCode={otpCode}
@@ -143,7 +207,7 @@ export default function Auth() {
           {activeTab === "login" && (
             <>
               <GoogleLoginButton />
-              <QuickCredentials />
+            
             </>
           )}
         </div>

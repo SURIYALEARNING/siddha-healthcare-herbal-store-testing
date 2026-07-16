@@ -1,7 +1,6 @@
 import express from "express";
 import Product from "../models/Product.js";
-import { verifyToken, verifyAdmin } from '../Auth/authMiddleware.js'
-import { getLoggedUser } from '../services/authHelper.js'
+import { verifyAdmin } from '../Auth/authMiddleware.js'
 
 const router = express.Router();
 
@@ -89,14 +88,9 @@ router.post("/manage", verifyAdmin, async (req, res) => {
 // @desc    Admin Product Management - Update an existing product
 // @route   PUT /api/products/manage/:id
 // @access  Private (Admin Only)
-router.put("/manage/:id", async (req, res) => {
+router.put("/manage/:id", verifyAdmin, async (req, res) => {
   try {
-    const user = getLoggedUser(req);
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ error: "Access forbidden. Admin privilege required." });
-    }
-
-    const productId = req.params.id; // URL-la irundhu 'prod-X' eduthukum
+    const productId = req.params.id;
     const updateData = req.body;
 
     // Data-va dynamic-ah handle panni database-la update panrom
@@ -127,13 +121,8 @@ router.put("/manage/:id", async (req, res) => {
 
 
 
-router.delete("/manage/:id", async (req, res) => {
+router.delete("/manage/:id", verifyAdmin, async (req, res) => {
   try {
-    const user = getLoggedUser(req);
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ error: "Access forbidden. Admin privilege required." });
-    }
-
     const productId = req.params.id;
 
     // Database-la irundhu match aagura product-ah delete panrom

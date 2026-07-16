@@ -23,6 +23,12 @@ export function useAuth() {
     }
   }, []);
 
+  const googleAuth = useCallback((accessToken: string, userData: User) => {
+    storage.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+    storage.set(STORAGE_KEYS.USER, userData);
+    setUser(userData);
+  }, []);
+
   const register = useCallback(async (
     fullName: string, email: string, mobileNumber: string, password: string
   ) => {
@@ -61,5 +67,5 @@ export function useAuth() {
     storage.remove(STORAGE_KEYS.USER);
   }, []);
 
-  return { user, setUser, error, setError, login, register, logout, updateProfile };
+  return { user, setUser, error, setError, login, googleAuth, register, logout, updateProfile };
 }

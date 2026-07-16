@@ -15,13 +15,17 @@ import couponRoutes from './routes/couponRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import paymentRoutes from './routes/payment.js';
+import shippingRoutes from './routes/shippingRoutes.js';
+import Shipment from './models/Shipment.js';
+import Order from './models/Order.js';
 import { trackOrder } from './controllers/adminController.js';
 
 connectDB();
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 
 app.use(cors());
 app.use(passport.initialize());
@@ -42,7 +46,46 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/consultation", consultationRoutes);
 app.use("/api/admin", adminRoutes);
 app.get("/api/orders/track/:id", trackOrder);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/admin/shipping", shippingRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+
+app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), async (req, res) => {
+  try {
+    const event = req.body;
+    if (event?.shipment_id && event?.current_status) {
+      const statusMap = {
+        "PICKED UP": "PICKED_UP",
+        "IN TRANSIT": "IN_TRANSIT",
+        "OUT FOR DELIVERY": "OUT_FOR_DELIVERY",
+        "DELIVERED": "DELIVERED",
+        "RETURNED": "RETURNED",
+        "CANCELLED": "CANCELLED",
+      };
+      const status: string = event.current_status;
+      const mapped = (statusMap as Record<string, string>)[status] || status;
+      const shipment = await Shipment.findById(event.shipment_id);
+      if (shipment) {
+        await Order.findByIdAndUpdate(shipment.orderId, {
+          $set: {
+            shippingStatus: mapped,
+            ...(mapped === "DELIVERED" ? { status: "Delivered" } : {}),
+          },
+        });
+        if (mapped === "DELIVERED") {
+          shipment.deliveredAt = new Date();
+        }
+        shipment.trackingStatus = mapped;
+        if (event.history) shipment.trackingHistory = event.history;
+        await shipment.save();
+      }
+    }
+    res.status(200).json({ status: "ok" });
+  } catch (err) {
+    console.error("Webhook error:", err);
+    res.status(500).json({ error: "Webhook processing failed" });
+  }
+});
 
 const startServer = async () => {
   app.listen(PORT, "0.0.0.0", () => {

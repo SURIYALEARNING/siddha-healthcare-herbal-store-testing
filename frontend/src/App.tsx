@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
+import { ToastProvider, useToastContext } from "./context/ToastContext";
+import ToastContainer from "./components/Toast/ToastContainer";
 import Navbar from "./components/Navbar";
 import SiddhaAIChatbot from "./components/SiddhaAIChatbot";
 
@@ -17,6 +19,7 @@ import Blogs from "./pages/Blogs";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
+import OrdersHistory from "./pages/OrdersHistory";
 
 // Modal component for doctor appointments
 function ConsultationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -172,6 +175,7 @@ function ConsultationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
 function MainAppContent() {
   const [modalOpen, setModalOpen] = useState(false);
+  const { toasts, removeToast } = useToastContext();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-gray-800">
@@ -194,6 +198,7 @@ function MainAppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/orders-history" element={<OrdersHistory />} />
         </Routes>
       </main>
 
@@ -202,7 +207,18 @@ function MainAppContent() {
 
       {/* Siddhar Agathiyar AI assistance Floating Chatbot */}
       <SiddhaAIChatbot />
+
+      {/* Global Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
+  );
+}
+
+function AppWithToast() {
+  return (
+    <ToastProvider>
+      <MainAppContent />
+    </ToastProvider>
   );
 }
 
@@ -210,7 +226,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppProvider>
-        <MainAppContent />
+        <AppWithToast />
       </AppProvider>
     </BrowserRouter>
   );

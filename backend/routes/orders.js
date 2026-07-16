@@ -1,11 +1,21 @@
 import express from "express";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
-import Product from "../models/Product.js"; // Assuming your Product model path
+import Product from "../models/Product.js";
 import { getLoggedUser } from '../services/authHelper.js'
 import { verifyToken, verifyAdmin } from '../Auth/authMiddleware.js'
 
 const router = express.Router();
+
+router.get("/orders", verifyToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders." });
+  }
+});
 
 router.post("/orders", verifyToken, async (req, res) => {
 
@@ -21,6 +31,7 @@ router.post("/orders", verifyToken, async (req, res) => {
     email,
     fullName,
     paymentMethod,
+    razorpayPaymentId,
   } = req.body;
 
   console.log(items[0].productId);
@@ -74,6 +85,8 @@ router.post("/orders", verifyToken, async (req, res) => {
       fullName,
       paymentMethod,
       paymentStatus: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
+      shippingStatus: paymentMethod === "Cash on Delivery" ? undefined : "PAID",
+      razorpayPaymentId,
     });
 
     await newOrder.save();

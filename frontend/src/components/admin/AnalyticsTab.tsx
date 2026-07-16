@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import StatsCard from "./StatsCard";
+import { adminFetchAnalyticsApi } from "../../api";
 import type { Product, Order } from "../../types";
 
 interface AnalyticsTabProps {
@@ -9,31 +11,48 @@ interface AnalyticsTabProps {
   consultationsCount: number;
 }
 
+interface AnalyticsData {
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  topProducts: { id: string; name: string; quantity: number; revenue: number }[];
+  categoryData: { name: string; value: number }[];
+  monthlyRevenue: { name: string; revenue: number; orders: number }[];
+  bookingCount: number;
+}
+
 const PIE_COLORS = ["#14532D", "#D4AF37", "#10B981", "#6EE7B7"];
 
 export default function AnalyticsTab({ products, orders, consultationsCount }: AnalyticsTabProps) {
-  const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
-  const totalProductsSold = orders.reduce(
-    (acc, o) => acc + o.items.reduce((ac2, item) => ac2 + item.quantity, 0),
-    0
-  );
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
 
-  const revenueChartData = [
+  useEffect(() => {
+    adminFetchAnalyticsApi().then(setAnalytics).catch(() => {});
+  }, []);
+
+  const totalRevenue = analytics?.totalRevenue ?? orders.reduce((acc, o) => acc + o.total, 0);
+  const totalProductsSold = analytics
+    ? analytics.topProducts.reduce((acc, p) => acc + p.quantity, 0)
+    : orders.reduce((acc, o) => acc + o.items.reduce((ac2, item) => ac2 + item.quantity, 0), 0);
+
+  const revenueChartData = analytics?.monthlyRevenue ?? [
     { name: "Mon", revenue: 850 },
     { name: "Tue", revenue: 1450 },
     { name: "Wed", revenue: 980 },
     { name: "Thu", revenue: 2100 },
-    { name: "Fri", revenue: totalRevenue > 2500 ? totalRevenue / 2 : 1850 },
-    { name: "Sat", revenue: totalRevenue > 4000 ? totalRevenue / 1.5 : 3200 },
+    { name: "Fri", revenue: 1850 },
+    { name: "Sat", revenue: 3200 },
     { name: "Sun", revenue: totalRevenue },
   ];
 
-  const categoryDistributionData = [
-    { name: "Immunity Boosters", value: products.filter(p => p.category === "Immunity Boosters").length },
-    { name: "Digestive Care", value: products.filter(p => p.category === "Digestive Care").length },
-    { name: "Skin Care", value: products.filter(p => p.category === "Skin Care").length },
-    { name: "Hair Care", value: products.filter(p => p.category === "Hair Care").length },
-  ];
+  const categoryDistributionData = analytics?.categoryData?.length
+    ? analytics.categoryData
+    : [
+        { name: "Immunity Boosters", value: products.filter(p => p.category === "Immunity Boosters").length },
+        { name: "Digestive Care", value: products.filter(p => p.category === "Digestive Care").length },
+        { name: "Skin Care", value: products.filter(p => p.category === "Skin Care").length },
+        { name: "Hair Care", value: products.filter(p => p.category === "Hair Care").length },
+      ];
 
   return (
     <div className="space-y-8">
@@ -41,7 +60,7 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
         <StatsCard
           label="Gross Sales Revenue"
           value={`₹${totalRevenue}`}
-          footer="↑ 14.5% versus yesterweek"
+          footer={`${analytics?.totalOrders || orders.length} orders`}
         />
         <StatsCard
           label="Remedy Units Handled"
@@ -51,7 +70,7 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
         />
         <StatsCard
           label="Doctor Calls Placed"
-          value={consultationsCount}
+          value={consultationsCount || analytics?.bookingCount || 0}
           footer="Pulse assessments registered"
           footerColor="text-rose-500"
         />
@@ -67,14 +86,14 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl space-y-4">
-          <h3 className="text-sm font-bold text-emerald-950 uppercase tracking-widest block">Daily Business Profit Graph</h3>
+          <h3 className="text-sm font-bold text-emerald-950 uppercase tracking-widest block">Monthly Revenue Graph</h3>
           <div className="w-full h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={revenueChartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <Tooltip formatter={(value) => [`₹${value}`, "Sales Revenue"]} />
+                <Tooltip formatter={(value: any) => [`₹${value}`, "Sales Revenue"]} />
                 <Line type="monotone" dataKey="revenue" stroke="#14532D" strokeWidth={3} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -82,7 +101,7 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
         </div>
 
         <div className="lg:col-span-4 bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl space-y-4">
-          <h3 className="text-sm font-bold text-emerald-950 uppercase tracking-widest block">Therapeutics distribution</h3>
+          <h3 className="text-sm font-bold text-emerald-950 uppercase tracking-widest block">Category Distribution</h3>
           <div className="w-full h-56 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -91,7 +110,7 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(val) => [`${val} Formularys`, "Products"]} />
+                <Tooltip formatter={(val: any) => [`${val}`, "Products"]} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -103,7 +122,7 @@ export default function AnalyticsTab({ products, orders, consultationsCount }: A
                   <span className="w-2.5 h-2.5 rounded-full block" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                   <span className="truncate max-w-40 block">{item.name}</span>
                 </div>
-                <span>{item.value} formulas</span>
+                <span>{item.value}</span>
               </div>
             ))}
           </div>

@@ -8,6 +8,8 @@ interface OrdersTabProps {
 const STATUSES = ["Ordered", "Packed", "Shipped", "Out for Delivery", "Delivered"] as const;
 
 export default function OrdersTab({ orders, onUpdateStatus }: OrdersTabProps) {
+  console.log(orders);
+  
   return (
     <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-6 overflow-x-auto">
       <div className="border-b border-gray-50 pb-3 flex justify-between items-center">

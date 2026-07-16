@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const orderItemSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Product", // Reference to the Product model
+    ref: "Product",
     required: true,
   },
   name: { type: String, required: true },
@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Reference to the User model
+      ref: "User",
       required: true,
     },
     items: [orderItemSchema],
@@ -43,9 +43,24 @@ const orderSchema = new mongoose.Schema(
       enum: ["Pending", "Paid", "Failed"],
       required: true,
     },
+    razorpayPaymentId: { type: String },
+    razorpayOrderId: { type: String },
+    shippingStatus: {
+      type: String,
+      enum: [
+        "PAID", "CONFIRMED", "PACKED", "PICKUP_REQUESTED",
+        "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY",
+        "DELIVERED", "RETURNED", "CANCELLED",
+      ],
+      default: "PAID",
+    },
+    shiprocketOrderId: { type: String },
+    awbCode: { type: String },
+    courierName: { type: String },
+    trackingLink: { type: String },
   },
-  { 
-    timestamps: true // Automatically creates 'createdAt' and 'updatedAt' fields
+  {
+    timestamps: true,
   }
 );
 

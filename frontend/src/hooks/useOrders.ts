@@ -12,9 +12,9 @@ import {
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
 
-  const fetchUserOrders = useCallback(async (userId: string) => {
+  const fetchUserOrders = useCallback(async () => {
     try {
-      const data = await fetchUserOrdersApi(userId);
+      const data = await fetchUserOrdersApi();
       setOrders(data);
     } catch (e) {
       console.error("Failed to load orders:", e);

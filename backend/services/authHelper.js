@@ -1,8 +1,12 @@
-import state from '../data/index.js';
+import { User } from '../models/User.js';
 
-export function getLoggedUser(req) {
+export async function getLoggedUser(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
   const userId = authHeader.replace("Bearer ", "");
-  return state.users.find(u => u.id === userId) || null;
+  try {
+    return await User.findById(userId);
+  } catch {
+    return null;
+  }
 }

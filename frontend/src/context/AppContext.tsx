@@ -35,12 +35,13 @@ interface AppContextType {
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   loginUser: (email: string, password: string) => Promise<boolean>;
+  googleAuth: (accessToken: string, userData: User) => void;
   registerUser: (fullName: string, email: string, mobileNumber: string, password: string) => Promise<boolean>;
   logoutUser: () => void;
   updateUserProfile: (fullName: string, mobileNumber: string, address: Address) => Promise<boolean>;
   applyCouponCode: (code: string) => Promise<boolean>;
   removeCoupon: () => void;
-  submitOrder: (shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string) => Promise<Order | null>;
+  submitOrder: (shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string, razorpayPaymentId?: string) => Promise<Order | null>;
   trackOrder: (orderId: string) => Promise<Order | null>;
   bookConsultation: (fullName: string, mobileNumber: string, email: string, date: string, time: string, healthIssues: string) => Promise<boolean>;
   refreshProducts: () => Promise<void>;
@@ -82,7 +83,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           await cart.loadServerCart();
         }
-        await orders.fetchUserOrders(auth.user.id);
+        await orders.fetchUserOrders();
       }
       await Promise.all([
         products.fetchProducts(),
@@ -98,7 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const data = await auth.login(email, password);
       await cart.syncGuestCart();
-      await orders.fetchUserOrders(data.user.id);
+      await orders.fetchUserOrders();
       return true;
     } catch {
       return false;
@@ -161,7 +162,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeCoupon = useCallback(() => setActiveCoupon(null), []);
 
   const submitOrder = useCallback(async (
-    shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string
+    shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string,
+    razorpayPaymentId?: string
   ): Promise<Order | null> => {
     if (!auth.user) return null;
     const subtotal = cart.cart.reduce((s, i) => s + i.discountPrice * i.quantity, 0);
@@ -173,6 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         })),
         subtotal, couponDiscount: discount, total: subtotal - discount,
         shippingAddress, mobileNumber, email, fullName, paymentMethod,
+        ...(razorpayPaymentId && { razorpayPaymentId }),
       });
       cart.clearCart(!!auth.user);
       setActiveCoupon(null);
@@ -213,7 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const adminUpdateOrderStatus = useCallback(async (orderId: string, status: string, paymentStatus?: string) => {
     const ok = await orders.adminUpdateOrderStatus(orderId, status, paymentStatus);
-    if (ok && auth.user) await orders.fetchUserOrders(auth.user.id);
+    if (ok && auth.user) await orders.fetchUserOrders();
     return ok;
   }, [orders, auth.user]);
 
@@ -235,6 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleWishlist: wishlist.toggleWishlist,
     isInWishlist: wishlist.isInWishlist,
     loginUser,
+    googleAuth: auth.googleAuth,
     registerUser,
     logoutUser,
     updateUserProfile,

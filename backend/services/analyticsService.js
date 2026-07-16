@@ -5,12 +5,13 @@ export function buildAnalytics(orders, products, users, consultations) {
 
   const productSalesMap = {};
   orders.forEach(o => {
-    o.items.forEach(item => {
-      if (!productSalesMap[item.productId]) {
-        productSalesMap[item.productId] = { name: item.name, quantity: 0, revenue: 0 };
+    (o.items || []).forEach(item => {
+      const pid = item.productId ? item.productId.toString() : item.productId;
+      if (!productSalesMap[pid]) {
+        productSalesMap[pid] = { name: item.name, quantity: 0, revenue: 0 };
       }
-      productSalesMap[item.productId].quantity += item.quantity;
-      productSalesMap[item.productId].revenue += item.quantity * item.price;
+      productSalesMap[pid].quantity += item.quantity || 0;
+      productSalesMap[pid].revenue += (item.quantity || 0) * (item.price || 0);
     });
   });
 
@@ -21,10 +22,14 @@ export function buildAnalytics(orders, products, users, consultations) {
 
   const categorySales = {};
   orders.forEach(o => {
-    o.items.forEach(item => {
-      const prod = products.find(p => p.id === item.productId);
+    (o.items || []).forEach(item => {
+      const prod = products.find(p => {
+        const pid = p._id ? p._id.toString() : p.id;
+        const itemPid = item.productId ? item.productId.toString() : item.productId;
+        return pid === itemPid;
+      });
       const cat = prod ? prod.category : "Herbal Care";
-      categorySales[cat] = (categorySales[cat] || 0) + (item.quantity * item.price);
+      categorySales[cat] = (categorySales[cat] || 0) + ((item.quantity || 0) * (item.price || 0));
     });
   });
 
@@ -33,14 +38,19 @@ export function buildAnalytics(orders, products, users, consultations) {
     value: categorySales[cat]
   }));
 
-  const monthlyRevenue = [
-    { name: "Jan", revenue: 8500, orders: 40 },
-    { name: "Feb", revenue: 12400, orders: 58 },
-    { name: "Mar", revenue: 15600, orders: 75 },
-    { name: "Apr", revenue: 19800, orders: 90 },
-    { name: "May", revenue: 24500, orders: 110 },
-    { name: "Jun", revenue: totalRevenue + 15000, orders: totalOrders + 70 },
-  ];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthlyMap = {};
+  orders.forEach(o => {
+    const d = o.createdAt ? new Date(o.createdAt) : new Date();
+    const key = monthNames[d.getMonth()];
+    if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, count: 0 };
+    monthlyMap[key].revenue += o.total || 0;
+    monthlyMap[key].count += 1;
+  });
+
+  const monthlyRevenue = monthNames
+    .filter(m => monthlyMap[m])
+    .map(m => ({ name: m, revenue: monthlyMap[m].revenue, orders: monthlyMap[m].count }));
 
   return {
     totalRevenue,
@@ -49,6 +59,6 @@ export function buildAnalytics(orders, products, users, consultations) {
     topProducts: topProducts.slice(0, 5),
     categoryData,
     monthlyRevenue,
-    bookingCount: consultations.length
+    bookingCount: consultations.length,
   };
 }

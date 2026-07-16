@@ -162,16 +162,40 @@ router.get(
 
 router.get(
   "/google/callback",
-
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: "/login",
-  }),
-
+  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
   (req, res) => {
-    res.redirect("/");
-  
+    const user = req.user;
+    const userData = {
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      mobileNumber: user.mobileNumber,
+      isAdmin: user.isAdmin,
+      address: user.address,
+    };
 
+    const accessToken = jwt.sign(
+      { id: user.id, isAdmin: user.isAdmin },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: '59m' }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const userEncoded = encodeURIComponent(JSON.stringify(userData));
+    res.redirect(`${frontendUrl}/auth?accessToken=${accessToken}&user=${userEncoded}`);
   }
 );
 

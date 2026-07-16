@@ -1,41 +1,50 @@
-import state from '../data/index.js';
-import { getLoggedUser } from '../services/authHelper.js';
+import Coupon from '../models/Coupon.js';
 
-export function getCoupons(req, res) {
-  res.json(state.coupons);
+export async function getCoupons(req, res) {
+  try {
+    const coupons = await Coupon.find();
+    res.json(coupons);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch coupons." });
+  }
 }
 
-export function applyCoupon(req, res) {
-  const { code } = req.body;
-  const coupon = state.coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.active);
-  if (!coupon) {
-    return res.status(400).json({ error: "Invalid or expired coupon code." });
+export async function applyCoupon(req, res) {
+  try {
+    const { code } = req.body;
+    const coupon = await Coupon.findOne({ code: code.toUpperCase(), active: true });
+    if (!coupon) {
+      return res.status(400).json({ error: "Invalid or expired coupon code." });
+    }
+    res.json({ message: "Coupon applied successfully!", discountPercent: coupon.discountPercent });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to apply coupon." });
   }
-  res.json({ message: "Coupon applied successfully!", discountPercent: coupon.discountPercent });
 }
 
-export function manageCoupon(req, res) {
-  const user = getLoggedUser(req);
-  if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin privilege required." });
+export async function manageCoupon(req, res) {
+  try {
+    const { code, discountPercent, expiryDate } = req.body;
+    if (!code || !discountPercent) {
+      return res.status(400).json({ error: "Code and discount percent are required." });
+    }
 
-  const { code, discountPercent, expiryDate } = req.body;
-  if (!code || !discountPercent) {
-    return res.status(400).json({ error: "Code and discount percent are required details." });
+    let coupon = await Coupon.findOne({ code: code.toUpperCase() });
+    if (coupon) {
+      coupon.discountPercent = Number(discountPercent);
+      coupon.expiryDate = expiryDate || "2026-12-31";
+      await coupon.save();
+      return res.json({ message: "Coupon successfully modified!", coupon });
+    }
+
+    coupon = await Coupon.create({
+      code: code.toUpperCase(),
+      discountPercent: Number(discountPercent),
+      expiryDate: expiryDate || "2026-12-31",
+    });
+
+    res.status(201).json({ message: "New coupon created!", coupon });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to manage coupon." });
   }
-
-  const existing = state.coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
-  if (existing) {
-    existing.discountPercent = Number(discountPercent);
-    existing.expiryDate = expiryDate || "2026-12-31";
-    return res.json({ message: "Coupon successfully modified!", coupon: existing });
-  }
-
-  const newCoupon = {
-    code: code.toUpperCase(),
-    discountPercent: Number(discountPercent),
-    expiryDate: expiryDate || "2026-12-31",
-    active: true
-  };
-  state.coupons.push(newCoupon);
-  res.status(201).json({ message: "New coupon coupon created!", coupon: newCoupon });
 }

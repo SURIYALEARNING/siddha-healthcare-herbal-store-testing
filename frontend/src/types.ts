@@ -46,6 +46,11 @@ export interface OrderItem {
   image: string;
 }
 
+export type ShippingStatus =
+  | "PAID" | "CONFIRMED" | "PACKED" | "PICKUP_REQUESTED"
+  | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY"
+  | "DELIVERED" | "RETURNED" | "CANCELLED";
+
 export interface Order {
   id: string;
   userId: string;
@@ -61,6 +66,50 @@ export interface Order {
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending';
   date: string;
+  razorpayPaymentId?: string;
+  shippingStatus?: ShippingStatus;
+  shiprocketOrderId?: string;
+  awbCode?: string;
+  courierName?: string;
+  trackingLink?: string;
+}
+
+export interface Shipment {
+  _id: string;
+  orderId: string;
+  shiprocketOrderId?: string;
+  awbCode?: string;
+  courierName?: string;
+  pickupStatus?: string;
+  trackingStatus?: string;
+  trackingHistory?: TrackingEntry[];
+  pickupScheduledAt?: string;
+  deliveredAt?: string;
+  labelUrl?: string;
+  manifestUrl?: string;
+  dimensions?: { length: number; breadth: number; height: number };
+  weight?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrackingEntry {
+  status: string;
+  location: string;
+  timestamp: string;
+  message: string;
+}
+
+export interface ShippingStats {
+  total: number;
+  paid: number;
+  confirmed: number;
+  packed: number;
+  pickupRequested: number;
+  inTransit: number;
+  delivered: number;
+  cancelled: number;
+  returned: number;
 }
 
 export interface Blog {
