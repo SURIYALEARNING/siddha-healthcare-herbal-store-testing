@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js"; // Assuming your Product model path
-import { getLoggedUser } from '../server.js'
+import { getLoggedUser } from '../services/authHelper.js'
 import { verifyToken, verifyAdmin } from '../Auth/authMiddleware.js'
 
 const router = express.Router();

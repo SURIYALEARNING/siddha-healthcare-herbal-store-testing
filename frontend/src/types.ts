@@ -81,6 +81,18 @@ export interface Coupon {
   active: boolean;
 }
 
+export interface Consultation {
+  id: string;
+  fullName: string;
+  mobileNumber: string;
+  email: string;
+  preferredDate: string;
+  preferredTime: string;
+  healthIssues: string;
+  status: string;
+  date: string;
+}
+
 export interface User {
   id: string;
   fullName: string;

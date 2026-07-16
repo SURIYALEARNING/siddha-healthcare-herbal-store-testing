@@ -86,65 +86,6 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 
-// 3. LOGIN - Verify Credentials & Return User Data
-// router.post('/login', async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // 1. Find user by email
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.status(400).json({ message: "Invalid Email or Password" });
-//     }
-
-//     // 2. Compare hashed password
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res.status(400).json({ message: "Invalid Email or Password" });
-//     }
-
-//     // 3. Return user data (Exclude password for security)
-//     const userData = {
-//       id: user._id,
-//       fullName: user.fullName,
-//       email: user.email,
-//       mobileNumber: user.mobileNumber,
-//       isAdmin: user.isAdmin,
-//       address: user.address // This will send empty fields if not updated yet
-//     };
-
-//     // 3. Generate Tokens (Payload la role based authorization-ku 'isAdmin' add panrom)
-//     const accessToken = jwt.sign(
-//         { id: user.id, isAdmin: user.isAdmin },
-//         ACCESS_TOKEN_SECRET,
-//         { expiresIn: '59m' }
-//     );
-
-//     const refreshToken = jwt.sign(
-//         { id: user.id },
-//         REFRESH_TOKEN_SECRET,
-//         { expiresIn: '7d' }
-//     );
-
-//     // 4. Send Refresh Token inside an HTTP-Only Cookie (Highly Secure)
-//     res.cookie('refreshToken', refreshToken, {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === 'production', // true in production
-//         sameSite: 'Strict',
-//         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       accessToken,
-//       message: "Login successful!",
-//       user: userData
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
 
 
 
@@ -238,50 +179,63 @@ router.get(
 
 
 // 4. UPDATE PROFILE - Modify standard fields and address info
+// Frontend sends: { fullName, mobileNumber, address, state, district, pincode }
 router.put('/update-profile/:userId', async (req, res) => {
+
+  
   try {
     const { userId } = req.params;
-    const { fullName, mobileNumber, billingAddress } = req.body;
+    const { fullName, mobileNumber, address, state, district, pincode } = req.body;
+  
+    
 
-    // Direct object key mapping alignment inside MongoDB
+    if (!fullName || !mobileNumber) {
+      return res.status(400).json({ success: false, error: "Full name and mobile number are required." });
+    }
+
+    const updateFields = {
+      fullName,
+      mobileNumber,
+    };
+
+    if (address || state || district || pincode) {
+      updateFields["address.address"] = address || "";
+      updateFields["address.state"] = state || "";
+      updateFields["address.district"] = district || "";
+      updateFields["address.pincode"] = pincode || "";
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        $set: {
-          fullName: fullName,
-          mobileNumber: mobileNumber,
-          // mapping billingAddress elements into schema definitions
-          "address.address": billingAddress.address,
-          "address.state": billingAddress.state,
-          "address.district": billingAddress.district,
-          "address.pincode": billingAddress.pincode
-        }
-      },
-      { new: true } // Returns updated schema instance directly instead of old state
+      { $set: updateFields },
+      { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, error: "User not found." });
     }
 
-    // Prepare fresh sanitised response
     const userData = {
       id: updatedUser._id,
       fullName: updatedUser.fullName,
       email: updatedUser.email,
       mobileNumber: updatedUser.mobileNumber,
       isAdmin: updatedUser.isAdmin,
-      address: updatedUser.address
+      address: updatedUser.address,
     };
 
     res.status(200).json({
       success: true,
       message: "Profile updated successfully!",
-      user: userData
+      user: userData,
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Update profile error:", error);
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, error: "Invalid data provided." });
+    }
+    res.status(500).json({ success: false, error: "Server error. Profile update failed." });
   }
 });
 

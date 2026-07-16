@@ -1,6 +1,0 @@
-{
-  "name": "Siddha Healthcare & Herbal Store",
-  "description": "Premium traditional Siddha Clinic & Herbal Products online eCommerce store with AI Consultant chatbot and robust Admin Dashboard.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
