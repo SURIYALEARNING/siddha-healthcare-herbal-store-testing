@@ -35,9 +35,9 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Shop Remedies", path: "/shop" },
+    // { name: "Shop Remedies", path: "/shop" },
     { name: "Health Blogs", path: "/blogs" },
-    { name: "Meet the Doctor", path: "/about" },
+    { name: "About", path: "/about" },
     { name: "Contact us", path: "/contact" }
   ];
 
@@ -46,18 +46,18 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
+        <div className="flex justify-between items-center h-16 sm:h-18 gap-2">
           
           {/* Logo Brand */}
-          <Link to="/" className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 bg-siddha-dark rounded-full flex items-center justify-center shrink-0 shadow-sm">
-              <div className="text-siddha-gold text-2xl font-serif">S</div>
+          <Link to="/" className="flex flex-1 items-center space-x-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-siddha-dark rounded-full flex items-center justify-center shrink-0 shadow-sm">
+              <div className="text-siddha-gold text-xl sm:text-2xl font-serif">S</div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-siddha-dark font-serif font-bold text-xl leading-none uppercase tracking-tight">
+            <div className="flex flex-col min-w-0">
+              <span className="text-siddha-dark font-serif font-bold text-lg sm:text-xl leading-none uppercase tracking-tight truncate">
                 Siddha Veda
               </span>
-              <span className="text-[10px] text-siddha-dark/60 uppercase tracking-widest leading-none mt-1">
+              <span className="hidden md:block text-[10px] text-siddha-dark/60 uppercase tracking-widest leading-none mt-1">
                 Ancient Healing for Modern Life
               </span>
             </div>
@@ -84,12 +84,12 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
           </nav>
 
           {/* Action Icons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-4 shrink-0">
             {/* Search Trigger */}
             {onSearchToggle && (
               <button 
                 onClick={onSearchToggle}
-                className="p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors"
+                className="hidden sm:block p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors"
                 title="Search Products"
               >
                 <Search className="w-5.5 h-5.5" />
@@ -97,18 +97,18 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
             )}
 
             {/* Book Consult Shortcut */}
-            <button
+            {/* <button
               onClick={onConsultationClick}
               className="hidden lg:flex items-center space-x-1.5 px-3.5 py-1.5 bg-siddha-dark hover:bg-emerald-800 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer shadow-sm shadow-emerald-950/10"
             >
               <Calendar className="w-4 h-4 text-siddha-gold" />
               <span>Book Appointment</span>
-            </button>
+            </button> */}
 
             {/* Wishlist Icon */}
             <Link 
               to="/wishlist" 
-              className="p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors relative"
+              className="p-1.5 sm:p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors relative"
               title="My Wishlist"
             >
               <Heart className="w-5.5 h-5.5" />
@@ -120,7 +120,7 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
             {/* Shopping Bag Icon */}
             <Link 
               to="/cart" 
-              className="p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors relative"
+              className="p-1.5 sm:p-2 text-gray-500 hover:text-siddha-dark hover:bg-gray-50 rounded-full transition-colors relative"
               title="Shopping Bag"
             >
               <ShoppingBag className="w-5.5 h-5.5" />
@@ -133,10 +133,10 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
 
             {/* User Icon & Submenu */}
             {user ? (
-              <div className="flex items-center space-x-2 border-l border-gray-100 pl-4">
+              <div className="flex items-center space-x-1 sm:space-x-2 border-l border-gray-100 pl-2 sm:pl-4">
                 <Link
                   to={user.isAdmin ? "/admin" : "/account"}
-                  className="flex items-center space-x-2 group"
+                  className="flex items-center space-x-1 sm:space-x-2 group"
                 >
                   <div className="w-8 h-8 rounded-full bg-siddha-light flex items-center justify-center text-siddha-dark font-semibold text-xs border border-emerald-100 uppercase group-hover:border-siddha-gold transition-colors">
                     {user.fullName.substring(0, 2)}
@@ -146,8 +146,9 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
                   </span>
                 </Link>
                 {user.isAdmin && (
-                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
-                    Admin
+                  <span aria-label="Admin" className="text-[9px] sm:text-[10px] bg-amber-100 text-amber-800 px-1 sm:px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                    <span className="sm:hidden">A</span>
+                    <span className="hidden sm:inline">Admin</span>
                   </span>
                 )}
               </div>
@@ -165,7 +166,7 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
             {/* Mobile Hamburger Trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-500 hover:text-siddha-dark rounded-full hover:bg-gray-50"
+              className="md:hidden p-1.5 sm:p-2 text-gray-500 hover:text-siddha-dark rounded-full hover:bg-gray-50"
               aria-label="Toggle Mobile Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

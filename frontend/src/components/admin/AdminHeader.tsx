@@ -39,16 +39,17 @@ export default function AdminHeader({ user, activeTab, onTabChange, onSignOut }:
         </button>
       </div>
 
-      <div className="flex justify-between items-end border-b border-gray-100 pb-5 flex-wrap gap-4">
-        <div>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end border-b border-gray-100 pb-5 gap-4">
+        <div className="min-w-0">
           <span className="text-xs font-bold text-red-650 uppercase tracking-widest block mb-1">Clinic Administration Area</span>
-          <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight leading-none flex items-center">
-            <Database className="w-7 h-7 text-siddha-gold mr-2.5" />
-            Vaidyar Chief Physician Console
+          <h1 className="text-2xl sm:text-3xl font-bold font-display text-emerald-950 tracking-tight leading-tight flex items-center">
+            <Database className="w-6 h-6 sm:w-7 sm:h-7 text-siddha-gold mr-2.5 shrink-0" />
+            <span>Vaidyar Chief Physician Console</span>
           </h1>
         </div>
 
-        <div className="flex overflow-x-auto gap-1 border border-gray-150 p-1.5 rounded-2xl bg-white bg-opacity-70 shrink-0 select-none">
+        <div className="w-full lg:w-auto max-w-full overflow-x-auto overscroll-x-contain border border-gray-150 p-1.5 rounded-2xl bg-white bg-opacity-70 select-none">
+          <div className="flex w-max gap-1">
           {TABS.map((tab) => (
             <TabButton
               key={tab.id}
@@ -59,6 +60,7 @@ export default function AdminHeader({ user, activeTab, onTabChange, onSignOut }:
               onClick={() => onTabChange(tab.id)}
             />
           ))}
+          </div>
         </div>
       </div>
     </>

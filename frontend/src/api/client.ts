@@ -1,17 +1,40 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "http://192.168.29.45:5000",
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+function isAdminRequest(url?: string): boolean {
+  return Boolean(
+    url && (
+      /^\/api\/admin(?:\/|$)/.test(url) ||
+      /^\/api\/(?:products|blogs|coupons)\/manage(?:\/|$)/.test(url)
+    )
+  );
+}
+
+function hasAdminAccess(): boolean {
+  try {
+    const user = JSON.parse(localStorage.getItem("siddha_user") || "null");
+    return Boolean(localStorage.getItem("accessToken")) && user?.isAdmin === true;
+  } catch {
+    return false;
+  }
+}
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (isAdminRequest(config.url) && !hasAdminAccess()) {
+    return Promise.reject(new Error("Admin access required"));
+  }
+
   return config;
 });
 

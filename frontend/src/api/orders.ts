@@ -21,9 +21,7 @@ interface SubmitOrderResponse {
 
 export const fetchUserOrdersApi = async (): Promise<Order[]> => {
   try {
-    const res = await client.get("/api/admin/orders");
-   
-    
+    const res = await client.get("/api/orders");
     return res.data;
   } catch (error) {
     handleApiError("fetchUserOrdersApi", error);
@@ -32,7 +30,7 @@ export const fetchUserOrdersApi = async (): Promise<Order[]> => {
 
 export const submitOrderApi = async (payload: CheckoutPayload): Promise<SubmitOrderResponse> => {
   try {
-    const res = await client.post("/api/admin/orders", payload);
+    const res = await client.post("/api/orders", payload);
     return res.data;
   } catch (error) {
     handleApiError("submitOrderApi", error);
@@ -41,7 +39,7 @@ export const submitOrderApi = async (payload: CheckoutPayload): Promise<SubmitOr
 
 export const trackOrderApi = async (orderId: string): Promise<Order> => {
   try {
-    const res = await client.get(`/api/admin/orders/track/${orderId}`);
+    const res = await client.get(`/api/orders/track/${orderId}`);
     return res.data;
   } catch (error) {
     handleApiError("trackOrderApi", error);

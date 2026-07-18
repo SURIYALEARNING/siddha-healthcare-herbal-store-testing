@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { CartItem, Product } from "../types";
 import { addToCartApi, updateCartQuantityApi, removeFromCartApi, clearCartApi, syncCartApi, fetchCartApi } from "../api";
 import { storage } from "../utils";
+import { STORAGE_KEYS } from "../constants";
 
 function clampQuantity(quantity: number, stock: number): number {
   return Math.max(1, Math.min(stock, quantity));
@@ -28,6 +29,12 @@ export function useCart(userId: string | undefined) {
   }, [cart, userId]);
 
   const loadServerCart = useCallback(async () => {
+    if (!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
+      const saved = storage.get<CartItem[]>(storage.cartKey(userId));
+      if (saved) setCart(saved);
+      return;
+    }
+
     try {
       const data = await fetchCartApi();
       setCart(data.items || []);

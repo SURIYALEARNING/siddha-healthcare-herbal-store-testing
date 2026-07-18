@@ -12,13 +12,13 @@ export default function TabButton({ id, label, Icon, active, onClick }: TabButto
   return (
     <button
       onClick={onClick}
-      className={`flex items-center space-x-1 px-4 py-2.5 rounded-xl text-xs font-bold uppercase cursor-pointer whitespace-nowrap transition-colors ${
+      className={`flex shrink-0 items-center space-x-1 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold uppercase cursor-pointer whitespace-nowrap transition-colors ${
         active
           ? "bg-siddha-dark text-white shadow-xs"
           : "text-gray-500 hover:bg-slate-50 hover:text-siddha-dark"
       }`}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       <span>{label}</span>
     </button>
   );
