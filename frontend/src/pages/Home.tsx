@@ -1,5 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import HeroCarousel from "../components/HeroCarousel";
+import ProductPromoCarousel from "../components/ProductPromoCarousel";
+import { promoData } from "../data/promoData";
+import logo from '../assets/logo.png'
 import Shop from './Shop'
 import {
   Heart,
@@ -58,96 +62,30 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
   return (
     <div className="space-y-20 pb-20">
 
-      {/* 1. HERO BANNER SECTION */}
-      <section className="relative bg-gradient-to-br from-emerald-950 via-siddha-dark to-slate-900 text-white overflow-hidden py-16 sm:py-24">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(220,252,231,0.08),transparent)]"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <HeroCarousel />
 
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-800/40 border border-emerald-500/20 rounded-full text-xs font-semibold text-siddha-light uppercase tracking-wider">
-                <Leaf className="w-3.5 h-3.5 text-siddha-gold" />
-                <span>100% Traditional Siddha Medicine</span>
-              </div>
-              <h1 className="text-4xl sm:text-5.5xl font-black font-display leading-tight tracking-tight">
-                Ancient Herbal Secrets for <br className="hidden sm:inline" />
-                <span className="text-siddha-light">Modern Lifespans</span>
-              </h1>
-              <p className="text-base sm:text-lg text-emerald-100/90 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
-                Connect directly with certified Siddha Doctors (Ayush Board) and discover premium organic remedies carefully made from pure herbs floating in cold-pressed natural oils. Restore your life's three humors: Vatham, Pitham & Kabham.
-              </p>
-
-              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 justify-center lg:justify-start pt-4">
-                <Link
-                  to="/shop"
-                  className="px-8 py-4 bg-siddha-gold hover:bg-yellow-500 text-siddha-dark rounded-xl font-bold tracking-tight text-center transition-all transform hover:-translate-y-0.5 cursor-pointer shadow-lg shadow-yellow-500/10"
-                >
-                  Shop Pure Remedies
-                </Link>
-                <button
-                  onClick={onConsultationClick}
-                  className="px-8 py-4 bg-white/10 hover:bg-white/15 border border-white/25 text-white rounded-xl font-bold tracking-tight text-center transition-all cursor-pointer"
-                >
-                  Book Free Consultation
-                </button>
-              </div>
-
-              {/* Badges preview */}
-              <div className="grid grid-cols-3 gap-4 pt-8 border-t border-emerald-800/50 max-w-md mx-auto lg:mx-0">
-                <div className="text-center lg:text-left">
-                  <h4 className="text-lg font-bold text-siddha-gold">Ayush</h4>
-                  <p className="text-xs text-emerald-250">Ministry Certified</p>
-                </div>
-                <div className="text-center lg:text-left">
-                  <h4 className="text-lg font-bold text-siddha-gold">100%</h4>
-                  <p className="text-xs text-emerald-250">Handcrafted Organic</p>
-                </div>
-                <div className="text-center lg:text-left">
-                  <h4 className="text-lg font-bold text-siddha-gold">5.0★</h4>
-                  <p className="text-xs text-emerald-250">Client Trust Score</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Interactive Card / Image */}
-            <div className="lg:col-span-5 relative">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-siddha-gold to-emerald-500 rounded-3xl blur-md opacity-25"></div>
-              <div className="relative bg-white rounded-3xl p-6 text-gray-800 shadow-xl overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-siddha-light rounded-full filter blur-xl opacity-30 -mr-6 -mt-6"></div>
-
-                <img
-                  src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=600"
-                  alt="Traditional Siddha Decoction Herbs"
-                  className="w-full h-48 object-cover rounded-2xl mb-5 shadow-xs"
-                  referrerPolicy="no-referrer"
-                />
-
-                <span className="bg-emerald-100 text-siddha-dark text-[10px] uppercase tracking-wider font-semibold px-2.5 py-1 rounded-full">
-                  Doctor's Pick
-                </span>
-                <h3 className="text-lg font-bold text-emerald-950 mt-2">
-                  Premium Kabasura Kudineer Pack
-                </h3>
-                <p className="text-xs text-gray-500 mt-1 lines-clamp-2">
-                  15 powerful herbal ingredients blended nicely to reinforce immediate respiratory protection against monsoon seasonal flus.
-                </p>
-
-                <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                  <div>
-                    <span className="text-xs text-gray-400 line-through">₹180</span>
-                    <span className="text-lg font-black text-siddha-dark ml-1 p-0.5">₹145</span>
-                  </div>
-                  <Link
-                    to="/products/prod-1"
-                    className="flex items-center space-x-1 text-xs font-bold text-siddha-dark hover:text-emerald-800 transition-colors"
-                  >
-                    <span>View Recipe</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
+      {/* Brand Logo + Quote Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          <div className="w-full md:w-[40%] flex justify-center">
+            <img
+              src={logo}
+              alt="Siddha Healthcare Logo"
+              className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="w-full md:w-[60%] text-center md:text-left space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold font-display text-emerald-950 tracking-tight">
+              Ayush Siddha Healthcare
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic font-serif">
+              "Healing the body, mind, and spirit through the ancient wisdom of Siddha medicine —
+              restoring balance to Vatham, Pitham, and Kabham with pure, natural remedies."
+            </p>
+            <p className="text-xs text-gray-400 font-semibold tracking-wider uppercase">
+              — Ministry of Ayush Certified | Since 2012
+            </p>
           </div>
         </div>
       </section>
@@ -208,6 +146,8 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
 
   
 
+
+      <ProductPromoCarousel items={promoData} />
 
       <Shop />
 

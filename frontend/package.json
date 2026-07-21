@@ -20,6 +20,7 @@
     "react-dom": "^19.0.1",
     "react-router-dom": "^7.18.0",
     "recharts": "^3.8.1",
+    "swiper": "^14.0.6",
     "vite": "^6.2.3"
   },
   "devDependencies": {
