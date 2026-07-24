@@ -1,0 +1,98 @@
+import { Search } from "lucide-react";
+
+interface ShopDesktopFiltersProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  categoryFilter: string;
+  categories: string[];
+  onCategoryChange: (cat: string) => void;
+  maxPrice: number;
+  priceRange: { min: number; max: number };
+  onPriceChange: (price: number) => void;
+  sortBy: string;
+  onSortChange: (sort: string) => void;
+}
+
+export function ShopDesktopFilters({
+  searchTerm,
+  onSearchChange,
+  categoryFilter,
+  categories,
+  onCategoryChange,
+  maxPrice,
+  priceRange,
+  onPriceChange,
+  sortBy,
+  onSortChange,
+}: ShopDesktopFiltersProps) {
+  return (
+    <aside className="hidden lg:block lg:col-span-3 bg-white p-6 rounded-2xl border border-gray-100 space-y-6 sticky top-24">
+      <div className="space-y-2">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Catalog</h3>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Ex. Kabasura, Sandal..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:outline-none focus:border-siddha-dark focus:bg-white text-gray-800 transition-colors"
+          />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+
+      <div className="space-y-2.5">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Categories</h3>
+        <div className="flex flex-col space-y-1">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => onCategoryChange(c)}
+              className={`px-3 py-2 text-xs font-medium rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${categoryFilter === c
+                  ? "bg-siddha-light text-siddha-dark"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-siddha-dark"
+                }`}
+            >
+              <span>{c}</span>
+              {categoryFilter === c && <span className="text-[10px] font-bold">&#10003;</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold">
+          <span>Max Budget Price</span>
+          <span className="text-siddha-dark font-black">&#8377;{maxPrice}</span>
+        </div>
+        <input
+          type="range"
+          min={priceRange.min}
+          max={priceRange.max}
+          step="10"
+          value={maxPrice}
+          onChange={(e) => onPriceChange(Number(e.target.value))}
+          className="w-full accent-siddha-dark bg-slate-100 h-1.5 rounded-lg cursor-pointer"
+        />
+        <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
+          <span>&#8377;{priceRange.min}</span>
+          <span>&#8377;{priceRange.max}</span>
+        </div>
+      </div>
+
+      <div className="space-y-2.5">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Sorter</h3>
+        <select
+          value={sortBy}
+          onChange={(e) => onSortChange(e.target.value)}
+          className="w-full p-2.5 border border-gray-150 rounded-xl text-xs bg-gray-50 text-gray-600 focus:outline-none focus:border-siddha-dark cursor-pointer"
+        >
+          <option value="newest">Newest Launch</option>
+          <option value="best-selling">Top Popularity</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+        </select>
+      </div>
+    </aside>
+  );
+}

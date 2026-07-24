@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { ChevronLeft } from "lucide-react";
@@ -8,19 +8,43 @@ import ProductActions from "../components/product/ProductActions";
 import ProductTabs from "../components/product/ProductTabs";
 import ReviewSection from "../components/product/ReviewSection";
 import RelatedProducts from "../components/product/RelatedProducts";
+import { Spinner } from "../components/ui/Spinner";
 import type { Product } from "../types";
+import { fetchProductByIdApi } from "../api/products";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
+  const productsRef = useRef(products);
+  productsRef.current = products;
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const prod = products.find((p) => p._id === id);
-    if (prod) setProduct(prod);
-  }, [id, products]);
+    if (!id) return;
+    let cancelled = false;
+    setLoading(true);
+    fetchProductByIdApi(id)
+      .then((data) => {
+        if (!cancelled) setProduct(data);
+      })
+      .catch(() => {
+        const fallback = productsRef.current.find((p) => p._id === id);
+        if (!cancelled && fallback) setProduct(fallback);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20">
+        <Spinner size="lg" className="py-20" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -33,6 +57,7 @@ export default function ProductDetails() {
     );
   }
 
+  const { reviewStats, latestReviews } = product;
   const hasDiscount = product.discountPrice < product.price;
 
   const relatedProducts = products
@@ -65,8 +90,7 @@ export default function ProductDetails() {
           <ProductInfo
             name={product.name}
             category={product.category}
-            rating={product.rating}
-            reviewCount={product.reviews?.length || 0}
+            reviewStats={reviewStats}
             price={product.price}
             discountPrice={product.discountPrice}
             description={product.description}
@@ -95,7 +119,10 @@ export default function ProductDetails() {
         usageInstructions={product.usageInstructions}
       />
 
-      <ReviewSection productId={product._id} reviews={product.reviews || []} />
+      <ReviewSection
+        productId={product._id}
+        initialStats={reviewStats}
+      />
 
       <RelatedProducts
         products={relatedProducts}

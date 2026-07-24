@@ -7,8 +7,8 @@ export function useProducts() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const data = await fetchProductsApi();
-      setProducts(data);
+      const data = await fetchProductsApi({ limit: 100 });
+      setProducts(data.products || []);
     } catch (e) {
       console.error("Failed to load products:", e);
     }

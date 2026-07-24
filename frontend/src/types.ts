@@ -1,9 +1,49 @@
 export interface Review {
-  id: string;
-  user: string;
+  _id: string;
+  productId: string;
+  userId?: string;
+  userName: string;
+  userAvatar?: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  images?: string[];
+  isVerifiedPurchase: boolean;
+  isApproved: boolean;
+  helpfulCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewPreview {
+  _id: string;
+  userName: string;
   rating: number;
   comment: string;
-  date: string;
+  createdAt: string;
+}
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  rating1: number;
+  rating2: number;
+  rating3: number;
+  rating4: number;
+  rating5: number;
+}
+
+export interface ReviewFormData {
+  rating: number;
+  title?: string;
+  comment: string;
+}
+
+export interface PaginatedReviews {
+  reviews: Review[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface Product {
@@ -18,8 +58,8 @@ export interface Product {
   benefits: string[];
   usageInstructions: string[];
   images: string[];
-  reviews: Review[];
-  rating: number;
+  reviewStats: ReviewStats;
+  latestReviews?: ReviewPreview[];
 }
 
 export interface Address {

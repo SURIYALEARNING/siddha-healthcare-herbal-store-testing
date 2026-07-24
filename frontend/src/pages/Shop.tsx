@@ -1,58 +1,27 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { Star, Heart, ShoppingBag, Search, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { useShopFilters } from "../hooks/useShopFilters";
+import { ShopProductCard, ShopDesktopFilters, ShopMobileFilters } from "../components/shop";
 
 export default function Shop() {
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-
-
-  // States for filter conditions
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [maxPrice, setMaxPrice] = useState(500);
-  const [sortBy, setSortBy] = useState("newest");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Sync state with URL params (like from Home Page Category Clicks)
-  useEffect(() => {
-    const cat = searchParams.get("category");
-    if (cat) {
-      setCategoryFilter(cat);
-    }
-  }, [searchParams]);
-
-  const categories = ["All", "Immunity Boosters", "Digestive Care", "Skin Care", "Hair Care"];
-
-  // Filter products
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "All" || p.category === categoryFilter;
-    const matchesPrice = p.discountPrice <= maxPrice;
-    return matchesSearch && matchesCategory && matchesPrice;
-  });
-
-  // Sort products
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === "price-low") return a.discountPrice - b.discountPrice;
-    if (sortBy === "price-high") return b.discountPrice - a.discountPrice;
-    if (sortBy === "best-selling") return b.reviews.length - a.reviews.length;
-
-    // 'newest' - Fixed by using MongoDB's _id
-  
-    
-    return b._id.localeCompare(a._id);
-  });
-
+  const {
+    searchTerm, setSearchTerm,
+    categoryFilter, setCategoryFilter,
+    maxPrice, setMaxPrice,
+    sortBy, setSortBy,
+    categories, priceRange,
+    paginatedProducts, sortedProducts,
+    currentPage, totalPages, goToPage,
+    resetFilters,
+  } = useShopFilters(products);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-      {/* Title Header */}
       <div className="mb-8 border-b border-gray-100 pb-5">
         <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight leading-none">
           Traditional Therapeutics Pharmacy
@@ -64,89 +33,21 @@ export default function Shop() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* SIDEBAR FILTERS (Desktop) */}
-        <aside className="hidden lg:block lg:col-span-3 bg-white p-6 rounded-2xl border border-gray-100 space-y-6 sticky top-24">
+        <ShopDesktopFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          categoryFilter={categoryFilter}
+          categories={categories}
+          onCategoryChange={setCategoryFilter}
+          maxPrice={maxPrice}
+          priceRange={priceRange}
+          onPriceChange={setMaxPrice}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
 
-          {/* Search */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Catalog</h3>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Ex. Kabasura, Sandal..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:outline-none focus:border-siddha-dark focus:bg-white text-gray-800 transition-colors"
-              />
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-            </div>
-          </div>
-
-          {/* Categories */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Categories</h3>
-            <div className="flex flex-col space-y-1">
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setCategoryFilter(c);
-                    setSearchParams({});
-                  }}
-                  className={`px-3 py-2 text-xs font-medium rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${categoryFilter === c
-                      ? "bg-siddha-light text-siddha-dark"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-siddha-dark"
-                    }`}
-                >
-                  <span>{c}</span>
-                  {categoryFilter === c && <span className="text-[10px] font-bold">✓</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Price Range Slider */}
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold">
-              <span>Max Budget Price</span>
-              <span className="text-siddha-dark font-black">₹{maxPrice}</span>
-            </div>
-            <input
-              type="range"
-              min="100"
-              max="1000"
-              step="10"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-siddha-dark bg-slate-100 h-1.5 rounded-lg cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
-              <span>₹100</span>
-              <span>₹1000</span>
-            </div>
-          </div>
-
-          {/* Sort By */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Sorter</h3>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full p-2.5 border border-gray-150 rounded-xl text-xs bg-gray-50 text-gray-600 focus:outline-none focus:border-siddha-dark cursor-pointer"
-            >
-              <option value="newest">Newest Launch</option>
-              <option value="best-selling">Top Popularity</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
-          </div>
-
-        </aside>
-
-        {/* MOBILE CONTROLS & PRODUCT GRID AREA */}
         <main className="lg:col-span-9 space-y-6">
 
-          {/* Mobile search bar and filters trigger */}
           <div className="lg:hidden flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <input
@@ -181,60 +82,18 @@ export default function Shop() {
             </div>
           </div>
 
-          {/* Horizontal drawer for mobile filters */}
           {mobileFiltersOpen && (
-            <div className="lg:hidden p-5 bg-white border border-emerald-100 rounded-2xl space-y-4 animate-fadeIn">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Filter & Refine Remedials</h3>
-              <div className="space-y-3">
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Therapeutic Categories</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {categories.map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => {
-                          setCategoryFilter(c);
-                          setSearchParams({});
-                        }}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-colors border ${categoryFilter === c
-                            ? "bg-siddha-dark text-white border-siddha-dark"
-                            : "bg-gray-50 text-gray-600 border-gray-200"
-                          }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold mb-1">
-                    <span>Upper Price Limit:</span>
-                    <span className="text-siddha-dark font-black">₹{maxPrice}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="100"
-                    max="1000"
-                    step="10"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(Number(e.target.value))}
-                    className="w-full accent-siddha-dark bg-slate-100 h-1.5 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-              </div>
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-full py-2 bg-siddha-dark text-white text-xs font-bold rounded-xl"
-              >
-                Apply Criteria
-              </button>
-            </div>
+            <ShopMobileFilters
+              categoryFilter={categoryFilter}
+              categories={categories}
+              onCategoryChange={setCategoryFilter}
+              maxPrice={maxPrice}
+              priceRange={priceRange}
+              onPriceChange={setMaxPrice}
+              onClose={() => setMobileFiltersOpen(false)}
+            />
           )}
 
-          {/* Results statement */}
           <div className="flex justify-between items-center px-2">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
               Displaying <span className="text-gray-800 font-bold">{sortedProducts.length}</span> results
@@ -242,98 +101,24 @@ export default function Shop() {
             </p>
           </div>
 
-          {/* Product Grid */}
-          {sortedProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedProducts.map((p) => {
-                const hasDiscount = p.discountPrice < p.price;
-                const inFav = isInWishlist(p._id);
-
-                return (
-                  <div
+          {paginatedProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedProducts.map((p) => (
+                  <ShopProductCard
                     key={p._id}
-                    className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-emerald-150 transition-all flex flex-col hover:shadow-md relative group p-4"
-                  >
+                    product={p}
+                    isInWishlist={isInWishlist(p._id)}
+                    onToggleWishlist={toggleWishlist}
+                    onAddToCart={addToCart}
+                  />
+                ))}
+              </div>
 
-                    {/* Floating top pills */}
-                    <div className="absolute top-6 left-6 flex flex-col space-y-1 z-10">
-                      {hasDiscount && (
-                        <span className="bg-[#a49870] text-siddha-dark text-[9px] font-black uppercase px-2 py-0.5 rounded">
-                          Offer
-                        </span>
-                      )}
-                      {p.stock <= 0 ? (
-                        <span className="bg-rose-100 text-rose-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">
-                          Sold Out
-                        </span>
-                      ) : p.stock < 10 ? (
-                        <span className="bg-amber-100 text-amber-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">
-                          Short Stock
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {/* Wishlist Button */}
-                    <button
-                      onClick={() => toggleWishlist(p._id)}
-                      className="absolute top-6 right-6 p-2 rounded-full bg-white/80 hover:bg-white text-rose-600 hover:text-rose-700 transition-colors shadow-xs z-10 cursor-pointer"
-                    >
-                      <Heart className={`w-4 h-4 ${inFav ? "fill-rose-600 text-rose-600" : ""}`} />
-                    </button>
-
-                    {/* Image */}
-                    <div className="w-full h-44 rounded-xl bg-slate-50 overflow-hidden mb-4">
-                      <img
-                        src={p.images[0]}
-                        alt={p.name}
-                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-
-                    {/* Stars */}
-                    <div className="flex items-center text-xs text-amber-500 space-x-1.5 mb-1.5 font-bold">
-                      <Star className="w-3.5 h-3.5 fill-current text-amber-400" />
-                      <span className="text-gray-700">{p.rating}</span>
-                      <span className="text-gray-400 font-semibold">({p.reviews.length})</span>
-                    </div>
-
-                    {/* Info */}
-                    <Link to={`/products/${p._id}`} className="group-hover:text-siddha-dark transition-colors">
-                      <h3 className="font-bold text-emerald-950 text-sm tracking-tight leading-snug lines-clamp-2 min-h-10">
-                        {p.name}
-                      </h3>
-                    </Link>
-                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">
-                      {p.category}
-                    </p>
-
-                    {/* Actions panel */}
-                    <div className="flex justify-between items-center mt-5 pt-3 border-t border-gray-50">
-                      <div className="flex items-baseline space-x-1.5">
-                        {hasDiscount && (
-                          <span className="text-xs text-gray-400 line-through">₹{p.price}</span>
-                        )}
-                        <span className="text-base font-black text-siddha-dark">₹{p.discountPrice}</span>
-                      </div>
-
-                      {p.stock > 0 ? (
-                        <button
-                          onClick={() => addToCart(p, 1)}
-                          className="px-3.5 py-1.5 bg-siddha-light hover:bg-[#cbfcd9] text-siddha-dark rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" />
-                          <span>Add to Bag</span>
-                        </button>
-                      ) : (
-                        <span className="text-xs font-bold text-gray-400">Sold out</span>
-                      )}
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
+              {totalPages > 1 && (
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+              )}
+            </>
           ) : (
             <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 p-8 space-y-4">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-gray-400 mx-auto">
@@ -344,12 +129,7 @@ export default function Shop() {
                 We couldn't located any traditional offerings aligned with your filters. Clear keywords or slide price filter bounds upwards.
               </p>
               <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setCategoryFilter("All");
-                  setMaxPrice(1000);
-                  setSearchParams({});
-                }}
+                onClick={resetFilters}
                 className="px-4 py-2 bg-siddha-dark text-white rounded-xl text-xs font-bold cursor-pointer"
               >
                 Reset All Filters
@@ -360,6 +140,65 @@ export default function Shop() {
         </main>
 
       </div>
+    </div>
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  const pages: number[] = [];
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i <= end; i++) pages.push(i);
+
+  return (
+    <div className="flex justify-center items-center space-x-2 pt-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage <= 1}
+        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+      >
+        Prev
+      </button>
+      {start > 1 && (
+        <>
+          <button onClick={() => onPageChange(1)} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer">1</button>
+          {start > 2 && <span className="px-1 text-gray-400 text-xs">...</span>}
+        </>
+      )}
+      {pages.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-lg border cursor-pointer ${
+            page === currentPage
+              ? "bg-siddha-dark text-white border-siddha-dark"
+              : "border-gray-200 text-gray-500 hover:bg-gray-50"
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+      {end < totalPages && (
+        <>
+          {end < totalPages - 1 && <span className="px-1 text-gray-400 text-xs">...</span>}
+          <button onClick={() => onPageChange(totalPages)} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer">{totalPages}</button>
+        </>
+      )}
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage >= totalPages}
+        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+      >
+        Next
+      </button>
     </div>
   );
 }

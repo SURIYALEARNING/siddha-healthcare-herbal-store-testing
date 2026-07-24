@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-
   name: { type: String, required: true },
   price: { type: Number, required: true },
   discountPrice: { type: Number },
@@ -12,16 +11,15 @@ const productSchema = new mongoose.Schema({
   benefits: [{ type: String }],
   usageInstructions: [{ type: String }],
   images: [{ type: String }],
-  rating: { type: Number, default: 0 },
-  reviews: [
-    {
-      id: { type: String },
-      user: { type: String },
-      rating: { type: Number },
-      comment: { type: String },
-      date: { type: String }
-    }
-  ]
+  reviewStats: {
+    averageRating: { type: Number, default: 0 },
+    totalReviews: { type: Number, default: 0 },
+    rating1: { type: Number, default: 0 },
+    rating2: { type: Number, default: 0 },
+    rating3: { type: Number, default: 0 },
+    rating4: { type: Number, default: 0 },
+    rating5: { type: Number, default: 0 },
+  },
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

@@ -2,8 +2,9 @@ import { MouseEvent } from "react";
 import { Product } from "../../types";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
-import { StarRating } from "../ui/StarRating";
 import { Button } from "../ui/Button";
+import { RatingStars } from "./RatingStars";
+import { ReviewCarousel } from "./ReviewCarousel";
 import { formatCurrency } from "../../utils";
 
 interface ProductCardProps {
@@ -16,6 +17,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCart, onClick }: ProductCardProps) {
+  const { reviewStats, latestReviews } = product;
+
   return (
     <Card hover className="overflow-hidden group" onClick={() => onClick(product._id)}>
       <div className="relative overflow-hidden aspect-square">
@@ -36,12 +39,16 @@ export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCa
           {isInWishlist ? "❤️" : "🤍"}
         </button>
       </div>
-      <div className="p-4">
+      <div className="p-4 pb-0">
         <p className="text-xs text-emerald-600 font-medium mb-1">{product.category}</p>
         <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-1 mb-2">
-          <StarRating rating={product.rating} />
-          <span className="text-xs text-gray-400">({product.reviews.length})</span>
+          <RatingStars
+            rating={reviewStats?.averageRating || 0}
+            size="sm"
+            showValue
+            count={reviewStats?.totalReviews || 0}
+          />
         </div>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-lg font-bold text-emerald-600">{formatCurrency(product.discountPrice)}</span>
@@ -58,6 +65,9 @@ export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCa
           {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
         </Button>
       </div>
+      {latestReviews && latestReviews.length > 0 && (
+        <ReviewCarousel reviews={latestReviews} />
+      )}
     </Card>
   );
 }

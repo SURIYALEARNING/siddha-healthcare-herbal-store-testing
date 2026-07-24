@@ -1,10 +1,11 @@
-import { Star, CheckCircle2, Heart } from "lucide-react";
+import { CheckCircle2, Heart } from "lucide-react";
+import { ReviewStats } from "../../types";
+import { RatingStars } from "./RatingStars";
 
 interface ProductInfoProps {
   name: string;
   category: string;
-  rating: number;
-  reviewCount: number;
+  reviewStats?: ReviewStats;
   price: number;
   discountPrice: number;
   description: string;
@@ -14,7 +15,7 @@ interface ProductInfoProps {
 }
 
 export default function ProductInfo({
-  name, category, rating, reviewCount,
+  name, category, reviewStats,
   price, discountPrice, description, stock,
   inWishlist, onToggleWishlist,
 }: ProductInfoProps) {
@@ -40,17 +41,13 @@ export default function ProductInfo({
         </button>
       </div>
 
-      <div className="flex items-center space-x-2 text-xs text-amber-500 font-bold">
-        <div className="flex">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 fill-current ${i < Math.floor(rating) ? "text-amber-400" : "text-gray-200"}`}
-            />
-          ))}
-        </div>
-        <span className="text-gray-800 ml-1">{rating} / 5.0</span>
-        <span className="text-gray-450 font-semibold">({reviewCount} Verified Reviews)</span>
+      <div className="flex items-center space-x-2 text-xs">
+        <RatingStars
+          rating={reviewStats?.averageRating || 0}
+          size="md"
+          showValue
+          count={reviewStats?.totalReviews || 0}
+        />
       </div>
 
       <div className="flex items-baseline space-x-2 bg-slate-50 p-4 rounded-2xl border border-slate-100 w-fit">

@@ -2,12 +2,29 @@ import client from "./client";
 import { Product } from "../types";
 import { handleApiError } from "./errors";
 
-export const fetchProductsApi = async (): Promise<Product[]> => {
+export const fetchProductsApi = async (params?: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  sort?: string;
+}): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
   try {
-    const res = await client.get("/api/products");
+    const res = await client.get("/api/products", { params });
+
+
     return res.data;
   } catch (error) {
     handleApiError("fetchProductsApi", error);
+  }
+};
+
+export const fetchProductByIdApi = async (id: string): Promise<Product> => {
+  try {
+    const res = await client.get(`/api/products/${id}`);    
+    return res.data;
+  } catch (error) {
+    handleApiError("fetchProductByIdApi", error);
   }
 };
 

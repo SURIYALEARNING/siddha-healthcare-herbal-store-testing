@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback } from "react";
 import { Product, Blog, Coupon, User, Address, CartItem, Order } from "../types";
 import {
   useAuth,
@@ -220,7 +220,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return ok;
   }, [orders, auth.user]);
 
-  const value: AppContextType = {
+  const value: AppContextType = useMemo(() => ({
     user: auth.user,
     products: products.products,
     blogs: blogs.blogs,
@@ -260,7 +260,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     adminFetchAnalytics: adminFetchAnalyticsApi,
     adminUpdateOrderStatus,
     adminFetchConsultations: adminFetchConsultationsApi,
-  };
+  }), [
+    auth.user, auth.error, auth.googleAuth,
+    products.products, products.fetchProducts, products.adminAddProduct, products.adminEditProduct,
+    blogs.blogs, blogs.adminAddBlog, blogs.adminEditBlog, blogs.adminDeleteBlog,
+    coupons.coupons, coupons.adminAddCoupon,
+    cart.cart,
+    wishlist.wishlist, wishlist.toggleWishlist, wishlist.isInWishlist,
+    orders.orders,
+    activeCoupon, loading,
+    addToCart, updateCartQuantity, removeFromCart, clearCart,
+    loginUser, registerUser, logoutUser, updateUserProfile,
+    applyCouponCode, removeCoupon,
+    submitOrder, trackOrder, bookConsultation,
+    adminDeleteProduct, adminUpdateOrderStatus,
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
