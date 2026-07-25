@@ -3,19 +3,27 @@ import { CartItem, Product } from "../types";
 import { addToCartApi, updateCartQuantityApi, removeFromCartApi, clearCartApi, syncCartApi, fetchCartApi } from "../api";
 import { storage } from "../utils";
 import { STORAGE_KEYS } from "../constants";
+import i18n from "../i18n/i18n";
 
 function clampQuantity(quantity: number, stock: number): number {
   return Math.max(1, Math.min(stock, quantity));
 }
 
+function getVal(val: any): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  const lang = i18n.language;
+  return val[lang] || val.en || "";
+}
+
 function buildItem(product: Product, quantity: number): CartItem {
   return {
     productId: product._id,
-    name: product.name,
+    name: getVal(product.name),
     price: product.price,
     discountPrice: product.discountPrice,
     quantity: clampQuantity(quantity, product.stock),
-    image: product.images[0],
+    image: product.media?.[0]?.url || product.images[0],
   };
 }
 

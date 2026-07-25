@@ -17,16 +17,27 @@ interface ProductCardProps {
   onClick: (id: string) => void;
 }
 
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
+
 export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCart, onClick }: ProductCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { reviewStats, latestReviews } = product;
+  const productName = getVal(product.name, lang);
+  const categoryName = typeof product.category === "object" && product.category
+    ? getVal((product.category as any).name, lang)
+    : (product.category as string);
 
   return (
     <Card hover className="overflow-hidden group" onClick={() => onClick(product._id)}>
       <div className="relative overflow-hidden aspect-square">
         <img
-          src={product.images[0]}
-          alt={product.name}
+          src={product.media?.[0]?.url || product.images[0]}
+          alt={productName}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {product.discountPrice < product.price && (
@@ -42,8 +53,8 @@ export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCa
         </button>
       </div>
       <div className="p-4 pb-0">
-        <p className="text-xs text-emerald-600 font-medium mb-1">{product.category}</p>
-        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
+        <p className="text-xs text-emerald-600 font-medium mb-1">{categoryName}</p>
+        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">{productName}</h3>
         <div className="flex items-center gap-1 mb-2">
           <RatingStars
             rating={reviewStats?.averageRating || 0}

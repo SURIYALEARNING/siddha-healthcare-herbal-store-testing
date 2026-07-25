@@ -1,16 +1,32 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Product } from "../types";
+import { Product, Category } from "../types";
 
 const ITEMS_PER_PAGE = 12;
 const DEBOUNCE_MS = 300;
 
-export function useShopFilters(products: Product[]) {
+function getCategoryName(p: Product, lang: string): string {
+  const cat = p.category;
+  if (!cat) return "";
+  if (typeof cat === "string") return cat;
+  const name = (cat as any).name;
+  if (!name) return (cat as any)._id || "";
+  if (typeof name === "string") return name;
+  return name[lang] || name.en || "";
+}
+
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
+
+export function useShopFilters(products: Product[], lang: string = "en", dbCategories?: Category[]) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const [maxPrice, setMaxPrice] = useState(500);
+  const [maxPrice, setMaxPrice] = useState(Infinity);
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -30,28 +46,56 @@ export function useShopFilters(products: Product[]) {
   }, [searchTerm]);
 
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
-    return ["All", ...cats.sort()];
-  }, [products]);
+    if (dbCategories && dbCategories.length > 0) {
+      const names = new Set<string>();
+      dbCategories.forEach((c) => {
+        const n = c.name?.[lang] || c.name?.en;
+        if (n) names.add(n);
+      });
+      return ["All", ...Array.from(names).sort()];
+    }
+    const catSet = new Set(products.map((p) => getCategoryName(p, lang)));
+    return ["All", ...Array.from(catSet).filter(Boolean).sort()];
+  }, [products, lang, dbCategories]);
 
   const priceRange = useMemo(() => {
-    if (products.length === 0) return { min: 100, max: 1000 };
+    if (products.length === 0) return { min: 100, max: 10000 };
     const prices = products.map((p) => p.discountPrice);
-    return { min: Math.min(...prices), max: Math.max(...prices) };
+    return { min: Math.min(...prices), max: Math.max(10000, ...prices) };
   }, [products]);
+
+  const catIdToName = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (dbCategories) {
+      dbCategories.forEach((c) => {
+        const n = c.name?.[lang] || c.name?.en;
+        if (c._id && n) map[c._id] = n;
+      });
+    }
+    return map;
+  }, [dbCategories, lang]);
+
+  const getCatName = useCallback((p: Product): string => {
+    const raw = getCategoryName(p, lang);
+    if (catIdToName[raw]) return catIdToName[raw];
+    return raw;
+  }, [lang, catIdToName]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const term = debouncedSearch.toLowerCase();
+      const pName = getVal(p.name, lang).toLowerCase();
+      const pDesc = getVal(p.description, lang).toLowerCase();
       const matchesSearch =
         !term ||
-        p.name.toLowerCase().includes(term) ||
-        p.description.toLowerCase().includes(term);
-      const matchesCategory = categoryFilter === "All" || p.category === categoryFilter;
+        pName.includes(term) ||
+        pDesc.includes(term);
+      const catName = getCatName(p);
+      const matchesCategory = categoryFilter === "All" || catName === categoryFilter;
       const matchesPrice = p.discountPrice <= maxPrice;
       return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [products, debouncedSearch, categoryFilter, maxPrice]);
+  }, [products, debouncedSearch, categoryFilter, maxPrice, lang, getCatName]);
 
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];

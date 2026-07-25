@@ -15,8 +15,6 @@ const verifyToken = (req, res, next) => {
 
     if (err) return res.status(403).json({ message: "Invalid or Expired Token" });
     req.user = decodedUser; // Contains { id, isAdmin }
-    console.log(req.user);
-    console.log("jwt verify", token, ACCESS_TOKEN_SECRET, req.user);
     next();
   });
 };

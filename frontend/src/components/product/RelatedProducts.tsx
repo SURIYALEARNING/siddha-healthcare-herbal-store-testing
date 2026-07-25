@@ -9,8 +9,15 @@ interface RelatedProductsProps {
   onToggleWishlist: (id: string) => void;
 }
 
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
+
 export default function RelatedProducts({ products, isInWishlist, onToggleWishlist }: RelatedProductsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   if (products.length === 0) return null;
 
   return (
@@ -24,6 +31,7 @@ export default function RelatedProducts({ products, isInWishlist, onToggleWishli
         {products.map((p) => {
           const inFav = isInWishlist(p._id);
           const isDiscounted = p.discountPrice < p.price;
+          const pName = getVal(p.name, lang);
 
           return (
             <div
@@ -39,8 +47,8 @@ export default function RelatedProducts({ products, isInWishlist, onToggleWishli
 
               <div className="w-full h-40 overflow-hidden rounded-xl bg-slate-50 mb-4">
                 <img
-                  src={p.images[0]}
-                  alt={p.name}
+                  src={p.media?.[0]?.url || p.images[0]}
+                  alt={pName}
                   className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                   referrerPolicy="no-referrer"
                 />
@@ -48,7 +56,7 @@ export default function RelatedProducts({ products, isInWishlist, onToggleWishli
 
               <Link to={`/products/${p._id}`} className="group-hover:text-siddha-dark transition-colors">
                 <h4 className="font-bold text-emerald-950 text-xs sm:text-sm lines-clamp-2 min-h-10 leading-tight">
-                  {p.name}
+                  {pName}
                 </h4>
               </Link>
 

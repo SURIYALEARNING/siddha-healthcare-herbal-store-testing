@@ -44,7 +44,7 @@ export function ShopMobileFilters({
         <div>
           <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold mb-1">
             <span>Upper Price Limit:</span>
-            <span className="text-siddha-dark font-black">&#8377;{maxPrice}</span>
+            <span className="text-siddha-dark font-black">{maxPrice === Infinity ? `Max` : `₹${maxPrice}`}</span>
           </div>
           <input
             type="range"

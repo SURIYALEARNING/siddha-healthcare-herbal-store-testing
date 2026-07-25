@@ -46,20 +46,46 @@ export interface PaginatedReviews {
   totalPages: number;
 }
 
+export interface MediaItem {
+  type: "image" | "video";
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+  duration?: number | null;
+  createdAt: string;
+}
+
 export interface Product {
   _id: string;
-  name: string;
+  name: Translation | string;
+  productMotto?: Translation | string;
+  shortDescription?: Translation | string;
+  description: Translation | string;
+  expiryDuration?: Translation | string;
+  category: Category | string;
   price: number;
   discountPrice: number;
   stock: number;
-  category: string;
-  description: string;
-  ingredients: string[];
-  benefits: string[];
-  usageInstructions: string[];
+  size?: Size;
+  ingredients: (Translation | string)[];
+  benefits: (Translation | string)[];
+  usageInstructions: (Translation | string)[];
+  safetyInstructions?: (Translation | string)[];
+  storageInstructions?: (Translation | string)[];
+  tags?: (Translation | string)[];
   images: string[];
+  media?: MediaItem[];
   reviewStats: ReviewStats;
   latestReviews?: ReviewPreview[];
+  averageRating?: number;
+  totalReviews?: number;
+  isFeatured?: boolean;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Address {

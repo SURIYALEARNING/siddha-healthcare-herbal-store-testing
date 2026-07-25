@@ -35,7 +35,11 @@ export async function updateReviewStats(productId) {
     rating5: s.rating5,
   };
 
-  await Product.findByIdAndUpdate(productId, { reviewStats });
+  await Product.findByIdAndUpdate(productId, {
+    reviewStats,
+    averageRating: reviewStats.averageRating,
+    totalReviews: reviewStats.totalReviews,
+  });
   return reviewStats;
 }
 
@@ -120,12 +124,25 @@ export async function getLatestReviews(productId, limit = 3) {
 
 export async function getProductsWithLatestReviews({ page = 1, limit = 12, category, search, sort }) {
   const match = {};
-  if (category && category !== "All") match.category = category;
-  if (search) {
+
+  if (category && category !== "All") {
     match.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
+      { category: category },
+      { "category.name.en": category },
+      { "category._id": category },
     ];
+  }
+
+  if (search) {
+    const searchRegex = { $regex: search, $options: "i" };
+    match.$or = (match.$or || []).concat([
+      { "name.en": searchRegex },
+      { "name.ta": searchRegex },
+      { "description.en": searchRegex },
+      { "description.ta": searchRegex },
+      { "shortDescription.en": searchRegex },
+      { "shortDescription.ta": searchRegex },
+    ]);
   }
 
   let sortOption = { createdAt: -1 };
@@ -135,29 +152,64 @@ export async function getProductsWithLatestReviews({ page = 1, limit = 12, categ
 
   const skip = (page - 1) * limit;
 
-  const [products, total] = await Promise.all([
-    Product.aggregate([
-      { $match: match },
-      { $sort: sortOption },
-      { $skip: skip },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: "reviews",
-          let: { pid: "$_id" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$productId", "$$pid"] }, isApproved: true } },
-            { $sort: { createdAt: -1 } },
-            { $limit: 3 },
-            { $project: { _id: 1, userName: 1, rating: 1, comment: { $substrCP: ["$comment", 0, 100] }, createdAt: 1 } },
-          ],
-          as: "latestReviews",
+  const pipeline = [
+    { $sort: sortOption },
+    { $skip: skip },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: "categories",
+        let: { catId: "$category" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: [
+                  "$_id",
+                  { $convert: { input: "$$catId", to: "objectId", onError: null, onNull: null } },
+                ],
+              },
+            },
+          },
+        ],
+        as: "categoryLookup",
+      },
+    },
+    {
+      $addFields: {
+        category: {
+          $cond: {
+            if: { $gt: [{ $size: "$categoryLookup" }, 0] },
+            then: { $arrayElemAt: ["$categoryLookup", 0] },
+            else: "$category",
+          },
         },
       },
-    ]),
+    },
+    {
+      $lookup: {
+        from: "reviews",
+        let: { pid: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$productId", "$$pid"] }, isApproved: true } },
+          { $sort: { createdAt: -1 } },
+          { $limit: 3 },
+          { $project: { _id: 1, userName: 1, rating: 1, comment: { $substrCP: ["$comment", 0, 100] }, createdAt: 1 } },
+        ],
+        as: "latestReviews",
+      },
+    },
+    { $project: { categoryLookup: 0 } },
+  ];
+
+  if (Object.keys(match).length > 0) {
+    pipeline.unshift({ $match: match });
+  }
+
+  const [products, total] = await Promise.all([
+    Product.aggregate(pipeline),
     Product.countDocuments(match),
   ]);
-
 
   return {
     products,

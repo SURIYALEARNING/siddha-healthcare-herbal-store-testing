@@ -11,17 +11,29 @@ interface ShopProductCardProps {
   onAddToCart: (product: Product, quantity: number) => void;
 }
 
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
+
 export const ShopProductCard = memo(function ShopProductCard({
   product: p,
   isInWishlist: inFav,
   onToggleWishlist,
   onAddToCart,
 }: ShopProductCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const hasDiscount = p.discountPrice < p.price;
   const [reviewIndex, setReviewIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reviews = p.latestReviews?.filter((r) => r.comment?.trim()) || [];
+
+  const productName = getVal(p.name, lang);
+  const categoryName = typeof p.category === "object" && p.category
+    ? getVal((p.category as any).name, lang)
+    : (p.category as string);
 
   useEffect(() => {
     if (reviews.length <= 1) return;
@@ -60,13 +72,17 @@ export const ShopProductCard = memo(function ShopProductCard({
       </button>
 
       <div className="w-full h-44 rounded-xl bg-slate-50 overflow-hidden mb-4">
-        <img
-          src={p.images[0]}
-          alt={p.name}
-          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-          referrerPolicy="no-referrer"
-          loading="lazy"
-        />
+        {p.media && p.media[0] && p.media[0].type === "video" ? (
+          <video src={p.media[0].url} className="w-full h-full object-cover" />
+        ) : (
+          <img
+            src={p.media?.[0]?.url || p.images[0]}
+            alt={productName}
+            className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+            referrerPolicy="no-referrer"
+            loading="lazy"
+          />
+        )}
       </div>
 
       <div className="flex items-center text-xs text-amber-500 space-x-1.5 mb-1.5 font-bold">
@@ -77,11 +93,11 @@ export const ShopProductCard = memo(function ShopProductCard({
 
       <Link to={`/products/${p._id}`} className="group-hover:text-siddha-dark transition-colors">
         <h3 className="font-bold text-emerald-950 text-sm tracking-tight leading-snug lines-clamp-2 min-h-10">
-          {p.name}
+          {productName}
         </h3>
       </Link>
       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">
-        {p.category}
+        {categoryName}
       </p>
 
       {reviews.length > 0 && (

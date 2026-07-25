@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Heart } from "lucide-react";
-import { ReviewStats } from "../../types";
+import { CheckCircle2, Heart, Scale } from "lucide-react";
+import { ReviewStats, Size } from "../../types";
 import { RatingStars } from "./RatingStars";
 
 interface ProductInfoProps {
   name: string;
+  productMotto: string;
+  size?: Size;
   category: string;
   reviewStats?: ReviewStats;
   price: number;
@@ -16,7 +18,7 @@ interface ProductInfoProps {
 }
 
 export default function ProductInfo({
-  name, category, reviewStats,
+  name, productMotto, size, category, reviewStats,
   price, discountPrice, description, stock,
   inWishlist, onToggleWishlist,
 }: ProductInfoProps) {
@@ -26,13 +28,19 @@ export default function ProductInfo({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-start gap-3">
-        <div>
+        <div className="space-y-2">
           <span className="text-xs bg-siddha-light text-siddha-dark font-bold px-3 py-1 rounded-full uppercase tracking-wider">
             {category}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black font-display text-emerald-950 tracking-tight leading-tight mt-2.5">
+          <h1 className="text-2xl sm:text-3xl font-black font-display text-emerald-950 tracking-tight leading-tight">
             {name}
           </h1>
+          {size && (
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1 w-fit">
+              <Scale className="w-3.5 h-3.5 text-siddha-dark" />
+              <span>{size.value} {size.unit}</span>
+            </div>
+          )}
         </div>
         <button
           onClick={onToggleWishlist}
@@ -42,6 +50,12 @@ export default function ProductInfo({
           <Heart className={`w-5 h-5 ${inWishlist ? "fill-current" : ""}`} />
         </button>
       </div>
+
+      {productMotto && (
+        <p className="text-sm italic text-emerald-600 font-medium leading-relaxed border-l-2 border-siddha-gold pl-3">
+          {productMotto}
+        </p>
+      )}
 
       <div className="flex items-center space-x-2 text-xs">
         <RatingStars
@@ -58,7 +72,7 @@ export default function ProductInfo({
           <>
             <span className="text-sm font-semibold text-gray-400 line-through">₹{price}</span>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-              {t('product.saveAmount', { amount: price - discountPrice })}
+              {t('saveAmount', { amount: price - discountPrice })}
             </span>
           </>
         )}

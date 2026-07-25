@@ -11,6 +11,7 @@ export const fetchProductsApi = async (params?: {
 }): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
   try {
     const res = await client.get("/api/products", { params });
+    console.log(res.data);
 
 
     return res.data;
@@ -21,7 +22,7 @@ export const fetchProductsApi = async (params?: {
 
 export const fetchProductByIdApi = async (id: string): Promise<Product> => {
   try {
-    const res = await client.get(`/api/products/${id}`);    
+    const res = await client.get(`/api/products/${id}`);
     return res.data;
   } catch (error) {
     handleApiError("fetchProductByIdApi", error);

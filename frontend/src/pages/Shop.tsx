@@ -1,14 +1,22 @@
 import { useTranslation } from 'react-i18next';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useShopFilters } from "../hooks/useShopFilters";
 import { ShopProductCard, ShopDesktopFilters, ShopMobileFilters } from "../components/shop";
+import { fetchCategoriesApi } from "../api/categories";
+import type { Category } from "../types";
 
 export default function Shop() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchCategoriesApi(true).then(setDbCategories).catch(() => {});
+  }, []);
 
   const {
     searchTerm, setSearchTerm,
@@ -19,7 +27,7 @@ export default function Shop() {
     paginatedProducts, sortedProducts,
     currentPage, totalPages, goToPage,
     resetFilters,
-  } = useShopFilters(products);
+  } = useShopFilters(products, lang, dbCategories);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

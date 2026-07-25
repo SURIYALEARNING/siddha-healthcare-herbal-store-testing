@@ -65,7 +65,7 @@ export function ShopDesktopFilters({
       <div className="space-y-2.5">
         <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold">
           <span>{t('common.maxBudgetPrice')}</span>
-          <span className="text-siddha-dark font-black">&#8377;{maxPrice}</span>
+          <span className="text-siddha-dark font-black">{maxPrice === Infinity ? `Max` : `₹${maxPrice}`}</span>
         </div>
         <input
           type="range"
