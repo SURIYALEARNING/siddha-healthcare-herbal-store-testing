@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Edit3, Trash2, Search } from 'lucide-react';
 import { useToastContext } from '../../context/ToastContext';
 import { fetchCategoriesApi, createCategoryApi, updateCategoryApi, deleteCategoryApi } from '../../api/categories';
-import type { CategoryV2 } from '../../types/v2';
+import type { Category } from '../../types';
 import TranslationInput from '../../components/ui/TranslationInput';
 import ImageUploader from '../../components/ui/ImageUploader';
 import { Modal } from '../../components/ui/Modal';
@@ -33,7 +33,7 @@ export default function ManageCategories() {
   const { t } = useTranslation();
   const { showSuccess, showError } = useToastContext();
 
-  const [categories, setCategories] = useState<CategoryV2[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -80,7 +80,7 @@ export default function ManageCategories() {
     setModalOpen(true);
   };
 
-  const openEdit = (cat: CategoryV2) => {
+  const openEdit = (cat: Category) => {
     setEditingId(cat._id);
     setForm({
       name: { en: cat.name.en || '', ta: cat.name.ta || '' },

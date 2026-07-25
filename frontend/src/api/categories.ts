@@ -1,26 +1,26 @@
 import client from './client';
-import type { CategoryV2, ApiResponse } from '../types/v2';
+import type { Category, ApiResponse } from '../types';
 
 const BASE = '/api/categories';
 
-export async function fetchCategoriesApi(active?: boolean): Promise<CategoryV2[]> {
+export async function fetchCategoriesApi(active?: boolean): Promise<Category[]> {
   const params = active !== undefined ? { active: String(active) } : {};
-  const { data } = await client.get<{ success: boolean; data: CategoryV2[] }>(BASE, { params });
+  const { data } = await client.get<{ success: boolean; data: Category[] }>(BASE, { params });
   return data.data;
 }
 
-export async function fetchCategoryBySlugApi(slug: string): Promise<CategoryV2> {
-  const { data } = await client.get<ApiResponse<CategoryV2>>(`${BASE}/${slug}`);
+export async function fetchCategoryBySlugApi(slug: string): Promise<Category> {
+  const { data } = await client.get<ApiResponse<Category>>(`${BASE}/${slug}`);
   return data.data;
 }
 
-export async function createCategoryApi(categoryData: Partial<CategoryV2>): Promise<CategoryV2> {
-  const { data } = await client.post<ApiResponse<CategoryV2>>(BASE, categoryData);
+export async function createCategoryApi(categoryData: Partial<Category>): Promise<Category> {
+  const { data } = await client.post<ApiResponse<Category>>(BASE, categoryData);
   return data.data;
 }
 
-export async function updateCategoryApi(id: string, categoryData: Partial<CategoryV2>): Promise<CategoryV2> {
-  const { data } = await client.put<ApiResponse<CategoryV2>>(`${BASE}/${id}`, categoryData);
+export async function updateCategoryApi(id: string, categoryData: Partial<Category>): Promise<Category> {
+  const { data } = await client.put<ApiResponse<Category>>(`${BASE}/${id}`, categoryData);
   return data.data;
 }
 

@@ -1,4 +1,4 @@
-import type { Size } from '../../types/v2';
+import type { Size } from '../../types';
 
 interface SizeSelectorProps {
   size: Size;

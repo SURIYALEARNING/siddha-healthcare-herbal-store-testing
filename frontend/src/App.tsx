@@ -21,8 +21,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import OrdersHistory from "./pages/OrdersHistory";
-import ProductsV2 from "./pages/ProductsV2";
-import ProductDetailV2 from "./pages/ProductDetailV2";
+
 
 // Modal component for doctor appointments
 function ConsultationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -193,8 +192,7 @@ function MainAppContent() {
           <Route path="/" element={<Home onConsultationClick={() => setModalOpen(true)} />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/products-v2" element={<ProductsV2 />} />
-          <Route path="/products-v2/:slug" element={<ProductDetailV2 />} />
+
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/auth" element={<Auth />} />

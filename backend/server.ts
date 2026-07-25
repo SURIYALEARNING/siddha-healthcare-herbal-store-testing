@@ -7,7 +7,7 @@ import passport from "./config/passport.js";
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
-import productV2Routes from './routes/productV2Routes.js';
+
 import checkout from './routes/orders.js';
 import cartRoutes from './routes/cart.js';
 import authProfileRoutes from './routes/authProfileRoutes.js';
@@ -41,7 +41,7 @@ app.use("/auth", authRoutes);
 app.use("/api/auth/profile", authProfileRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
-app.use("/api/products-v2", productV2Routes);
+
 app.use("/api", reviewRoutes);
 app.use("/api", checkout);
 app.use("/api/cart", cartRoutes);

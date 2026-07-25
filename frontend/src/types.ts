@@ -182,6 +182,33 @@ export interface Consultation {
   date: string;
 }
 
+export interface Translation {
+  en: string;
+  ta: string;
+}
+
+export interface Size {
+  value: number;
+  unit: 'mg' | 'g' | 'kg' | 'ml' | 'L' | 'capsule' | 'tablet' | 'pcs';
+}
+
+export interface Category {
+  _id: string;
+  name: Translation;
+  slug: Translation;
+  description: Translation;
+  image: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
 export interface User {
   id: string;
   fullName: string;
