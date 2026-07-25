@@ -8,6 +8,8 @@ import OrdersTab from "../components/admin/OrdersTab";
 import CouponsTab from "../components/admin/CouponsTab";
 import ConsultationsTab from "../components/admin/ConsultationsTab";
 import ShippingTab from "../components/admin/ShippingTab";
+import ManageCategories from "./admin/ManageCategories";
+import ManageProducts from "./admin/ManageProducts";
 import type { TabId } from "../components/admin/AdminHeader";
 import type { Consultation } from "../types";
 
@@ -66,7 +68,9 @@ export default function Admin() {
         />
       )}
 
+      {activeTab === "categories" && <ManageCategories />}
 
+      {activeTab === "products-v2" && <ManageProducts />}
 
       {activeTab === "coupons" && (
         <CouponsTab coupons={coupons} onCreateCoupon={adminAddCoupon} />

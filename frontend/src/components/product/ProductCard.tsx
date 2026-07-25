@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MouseEvent } from "react";
 import { Product } from "../../types";
 import { Card } from "../ui/Card";
@@ -17,6 +18,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCart, onClick }: ProductCardProps) {
+  const { t } = useTranslation();
   const { reviewStats, latestReviews } = product;
 
   return (
@@ -62,7 +64,7 @@ export function ProductCard({ product, isInWishlist, onToggleWishlist, onAddToCa
           onClick={(e: MouseEvent) => { e.stopPropagation(); onAddToCart(product); }}
           disabled={product.stock === 0}
         >
-          {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+          {product.stock === 0 ? t('product.outOfStock') : t('product.addToCart')}
         </Button>
       </div>
       {latestReviews && latestReviews.length > 0 && (

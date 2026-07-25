@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Heart } from "lucide-react";
 import { ReviewStats } from "../../types";
 import { RatingStars } from "./RatingStars";
@@ -19,6 +20,7 @@ export default function ProductInfo({
   price, discountPrice, description, stock,
   inWishlist, onToggleWishlist,
 }: ProductInfoProps) {
+  const { t } = useTranslation();
   const hasDiscount = discountPrice < price;
 
   return (
@@ -35,7 +37,7 @@ export default function ProductInfo({
         <button
           onClick={onToggleWishlist}
           className={`p-3 rounded-full border border-gray-150 transition-colors shrink-0 cursor-pointer ${inWishlist ? "bg-rose-50 text-rose-600 border-rose-100" : "bg-white text-gray-400 hover:text-rose-600"}`}
-          title="Save product to wishlist"
+          title={t('product.saveToWishlist')}
         >
           <Heart className={`w-5 h-5 ${inWishlist ? "fill-current" : ""}`} />
         </button>
@@ -56,7 +58,7 @@ export default function ProductInfo({
           <>
             <span className="text-sm font-semibold text-gray-400 line-through">₹{price}</span>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-              Save ₹{price - discountPrice}
+              {t('product.saveAmount', { amount: price - discountPrice })}
             </span>
           </>
         )}
@@ -67,14 +69,14 @@ export default function ProductInfo({
       </p>
 
       <div className="flex items-center space-x-1.5 text-xs font-bold">
-        <span className="text-gray-400 uppercase">Availability State:</span>
+        <span className="text-gray-400 uppercase">{t('product.availabilityState')}:</span>
         {stock > 0 ? (
           <span className="text-emerald-700 flex items-center">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 mr-0.5" />
-            In Stock ({stock} pieces left)
+            {t('product.inStock')} ({stock} {t('product.piecesLeft')})
           </span>
         ) : (
-          <span className="text-rose-600">Sold out</span>
+          <span className="text-rose-600">{t('product.outOfStock')}</span>
         )}
       </div>
     </div>

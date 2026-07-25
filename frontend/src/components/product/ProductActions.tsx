@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
 
@@ -8,13 +9,14 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({ stock, onAddToCart, onBuyNow }: ProductActionsProps) {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
 
   if (stock <= 0) {
     return (
       <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-center">
-        <p className="text-xs font-bold text-rose-700">Currently out of stock</p>
-        <p className="text-[10px] text-rose-600/80 mt-1">Our siddhars are sorting ingredients for a brand new batch. Ask Agathiyar AI on the corner for restock timelines!</p>
+        <p className="text-xs font-bold text-rose-700">{t('product.outOfStock')}</p>
+        <p className="text-[10px] text-rose-600/80 mt-1">{t('product.restockMessage')}</p>
       </div>
     );
   }
@@ -22,7 +24,7 @@ export default function ProductActions({ stock, onAddToCart, onBuyNow }: Product
   return (
     <div className="space-y-4 pt-4 border-t border-gray-50">
       <div className="flex items-center space-x-3">
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Quantity:</span>
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('product.quantity')}:</span>
         <div className="flex items-center border border-gray-200 rounded-lg">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -46,13 +48,13 @@ export default function ProductActions({ stock, onAddToCart, onBuyNow }: Product
           className="w-full py-3.5 px-6 bg-siddha-light hover:bg-[#cbfcd9] text-siddha-dark font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2"
         >
           <ShoppingBag className="w-4 h-4" />
-          <span>Add to Shopping Bag</span>
+          <span>{t('product.addToCart')}</span>
         </button>
         <button
           onClick={() => onBuyNow(quantity)}
           className="w-full py-3.5 px-6 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-950/10"
         >
-          Buy Remedy Now
+          {t('product.buyNow')}
         </button>
       </div>
     </div>

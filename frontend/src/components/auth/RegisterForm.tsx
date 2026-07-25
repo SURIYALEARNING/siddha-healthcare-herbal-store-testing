@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { User, Phone, Mail, Lock, ArrowRight } from "lucide-react";
 
 interface RegisterFormProps {
@@ -17,10 +18,11 @@ export default function RegisterForm({
   fullName, email, mobileNumber, password, loading,
   onFullNameChange, onEmailChange, onMobileChange, onPasswordChange, onSubmit,
 }: RegisterFormProps) {
+  const { t } = useTranslation();
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name *</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.name")}</label>
         <div className="relative">
           <input
             type="text"
@@ -35,7 +37,7 @@ export default function RegisterForm({
       </div>
 
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase">Contact Mobile Number *</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.phone")}</label>
         <div className="relative">
           <input
             type="text"
@@ -50,7 +52,7 @@ export default function RegisterForm({
       </div>
 
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase">Email Address *</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.email")}</label>
         <div className="relative">
           <input
             type="email"
@@ -65,7 +67,7 @@ export default function RegisterForm({
       </div>
 
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase">Password *</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.password")}</label>
         <div className="relative">
           <input
             type="password"
@@ -84,7 +86,7 @@ export default function RegisterForm({
         className="w-full py-3.5 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1 shadow-sm mt-3"
         disabled={loading}
       >
-        <span>Request OTP Code</span>
+        <span>{t("auth.register")}</span>
         <ArrowRight className="w-4 h-4 text-siddha-gold" />
       </button>
     </form>

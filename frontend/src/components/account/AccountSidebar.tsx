@@ -1,4 +1,5 @@
 import { Settings, ShoppingBag, MapPin, Heart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type AccountTab = "dashboard" | "orders" | "addresses" | "wishlist";
 
@@ -9,14 +10,16 @@ interface AccountSidebarProps {
   wishlistCount: number;
 }
 
-const TABS: { id: AccountTab; label: string; Icon: typeof Settings }[] = [
-  { id: "dashboard", label: "Profile Dashboard", Icon: Settings },
-  { id: "orders", label: "Orders Timeline", Icon: ShoppingBag },
-  { id: "addresses", label: "Shipping Address", Icon: MapPin },
-  { id: "wishlist", label: "My Wishlist", Icon: Heart },
-];
-
 export default function AccountSidebar({ activeTab, onTabChange, ordersCount, wishlistCount }: AccountSidebarProps) {
+  const { t } = useTranslation();
+
+  const TABS: { id: AccountTab; label: string; key: string; Icon: typeof Settings }[] = [
+    { id: "dashboard", label: "Profile Dashboard", key: "user.dashboard", Icon: Settings },
+    { id: "orders", label: "Orders Timeline", key: "user.orders", Icon: ShoppingBag },
+    { id: "addresses", label: "Shipping Address", key: "user.savedAddresses", Icon: MapPin },
+    { id: "wishlist", label: "My Wishlist", key: "user.wishlist", Icon: Heart },
+  ];
+
   return (
     <div className="lg:col-span-3 bg-white border border-gray-100 p-5 rounded-2xl flex flex-col space-y-1">
       {TABS.map((tab) => {
@@ -34,7 +37,7 @@ export default function AccountSidebar({ activeTab, onTabChange, ordersCount, wi
           >
             <div className="flex items-center space-x-2.5">
               <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
+              <span>{t(tab.key)}</span>
             </div>
             {count !== null && count > 0 && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${

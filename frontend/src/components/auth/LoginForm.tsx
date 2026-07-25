@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 
 interface LoginFormProps {
@@ -14,10 +15,11 @@ export default function LoginForm({
   email, password, loading,
   onEmailChange, onPasswordChange, onSubmit, onForgotPassword,
 }: LoginFormProps) {
+  const { t } = useTranslation();
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase">Email Address *</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.email")}</label>
         <div className="relative">
           <input
             type="email"
@@ -33,13 +35,13 @@ export default function LoginForm({
 
       <div className="space-y-1">
         <div className="flex justify-between items-center">
-          <label className="text-[10px] font-bold text-gray-400 uppercase">Password *</label>
+          <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.password")}</label>
           <button
             type="button"
             onClick={onForgotPassword}
             className="text-[10px] text-gray-400 hover:text-gray-600 underline font-semibold"
           >
-            Forgot password?
+            {t("auth.forgotPassword")}
           </button>
         </div>
         <div className="relative">
@@ -60,7 +62,7 @@ export default function LoginForm({
         className="w-full py-3.5 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1 shadow-sm mt-3"
         disabled={loading}
       >
-        <span>Authorize Sign In</span>
+        <span>{t("auth.signIn")}</span>
         <ArrowRight className="w-4 h-4 text-siddha-gold" />
       </button>
     </form>

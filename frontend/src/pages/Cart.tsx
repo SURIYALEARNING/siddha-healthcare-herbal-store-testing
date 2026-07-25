@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useApp } from "../context/AppContext";
 import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Tag } from "lucide-react";
 
 export default function Cart() {
+  const { t } = useTranslation();
   const { cart, updateCartQuantity, removeFromCart, activeCoupon, applyCouponCode, removeCoupon } = useApp();
   const navigate = useNavigate();
   const [couponInput, setCouponInput] = useState("");
@@ -25,10 +27,10 @@ export default function Cart() {
 
     const validated = await applyCouponCode(couponInput);
     if (validated) {
-      setCouponSuccess(`Coupon ${couponInput.toUpperCase()} applied successfully!`);
+      setCouponSuccess(t('cart.couponApplySuccess', { code: couponInput.toUpperCase() }));
       setCouponInput("");
     } else {
-      setCouponError("Invalid or expired coupon code. Try WELCOME50 or HEALTH20");
+      setCouponError(t('cart.invalidCoupon'));
     }
   };
 
@@ -38,15 +40,15 @@ export default function Cart() {
         <div className="w-20 h-20 rounded-full bg-siddha-light text-siddha-dark flex items-center justify-center mx-auto shadow-xs">
           <ShoppingBag className="w-10 h-10" />
         </div>
-        <h2 className="text-xl font-bold text-emerald-950 font-display">Your Shopping Bag is Empty</h2>
+        <h2 className="text-xl font-bold text-emerald-950 font-display">{t('cart.emptyTitle')}</h2>
         <p className="text-xs text-gray-400 max-w-sm mx-auto">
-          Explore our traditional Siddha medicines to booster your immunity, soothe digestion, or restore skin and hair vitality naturally.
+          {t('cart.emptyMessage')}
         </p>
         <Link 
           to="/shop" 
           className="inline-block px-6 py-3 bg-siddha-dark text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-950/10"
         >
-          Explore Traditional Pharmacy
+          {t('cart.explorePharmacy')}
         </Link>
       </div>
     );
@@ -57,8 +59,8 @@ export default function Cart() {
       
       {/* Header */}
       <div className="mb-8 border-b border-gray-100 pb-5">
-        <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">Shopping Bag</h1>
-        <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest mt-1">Review your healing selection before checkouts</p>
+        <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">{t('cart.shoppingBag')}</h1>
+        <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest mt-1">{t('cart.reviewSelection')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
@@ -93,7 +95,7 @@ export default function Cart() {
                         {hasDiscount && (
                           <span className="text-xs text-gray-400 line-through">₹{item.price}</span>
                         )}
-                        <span className="text-[10px] text-gray-400 uppercase font-black">per unit</span>
+                        <span className="text-[10px] text-gray-400 uppercase font-black">{t('product.perUnit')}</span>
                       </div>
                     </div>
                   </div>
@@ -127,7 +129,7 @@ export default function Cart() {
                     <button
                       onClick={() => removeFromCart(item.productId)}
                       className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-full transition-colors cursor-pointer"
-                      title="Remove product"
+                      title={t('cart.removeProduct')}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -145,10 +147,10 @@ export default function Cart() {
               to="/shop" 
               className="text-xs font-bold text-siddha-dark hover:underline uppercase tracking-wider"
             >
-              ← Back to Shopping Pharmacy
+              {t('cart.backToShopping')}
             </Link>
             <p className="text-xs text-gray-400 font-semibold uppercase">
-              Free Delivery on orders above ₹500
+              {t('cart.freeDeliveryOnOrders')}
             </p>
           </div>
 
@@ -161,22 +163,22 @@ export default function Cart() {
           <div className="bg-white border border-gray-100 rounded-3xl p-6 space-y-4">
             <h3 className="text-sm font-bold text-emerald-950 font-display flex items-center">
               <Tag className="w-4.5 h-4.5 text-siddha-gold mr-1.5" />
-              Apply Coupon Code
+              {t('cart.applyCoupon')}
             </h3>
 
             {activeCoupon ? (
               <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-emerald-800 uppercase tracking-widest leading-none">
-                    {activeCoupon.code} Applied
+                    {t('cart.couponApplied', { code: activeCoupon.code })}
                   </p>
-                  <p className="text-[10px] text-emerald-600/80 mt-1 font-semibold">Special {activeCoupon.percent}% Discount Applied</p>
+                  <p className="text-[10px] text-emerald-600/80 mt-1 font-semibold">{t('cart.couponDiscountApplied', { percent: activeCoupon.percent })}</p>
                 </div>
                 <button
                   onClick={removeCoupon}
                   className="text-xs font-bold text-rose-650 hover:text-rose-850 hover:underline shrink-0 cursor-pointer"
                 >
-                  Remove
+                  {t('cart.removeCoupon')}
                 </button>
               </div>
             ) : (
@@ -184,7 +186,7 @@ export default function Cart() {
                 <div className="flex gap-1.5">
                   <input
                     type="text"
-                    placeholder="WELCOME50, HEALTH20"
+                    placeholder={t('cart.couponPlaceholder')}
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value)}
                     className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-150 focus:border-siddha-dark focus:bg-white text-xs rounded-xl focus:outline-none uppercase text-gray-700 font-bold tracking-wider"
@@ -193,7 +195,7 @@ export default function Cart() {
                     type="submit"
                     className="px-4 py-2 bg-siddha-dark text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-emerald-800 transition-colors"
                   >
-                    Apply
+                    {t('cart.apply')}
                   </button>
                 </div>
                 {couponError && <p className="text-[10px] font-bold text-rose-600">{couponError}</p>}
@@ -204,36 +206,36 @@ export default function Cart() {
 
           {/* Cart Cost summary */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 space-y-4 shadow-xs">
-            <h3 className="text-sm font-bold text-emerald-950 font-display">Cart Cost Summary</h3>
+            <h3 className="text-sm font-bold text-emerald-950 font-display">{t('cart.cartCostSummary')}</h3>
 
             <div className="space-y-3.5 text-xs text-gray-500 font-medium">
               <div className="flex justify-between">
-                <span>Items Cost Subtotal:</span>
+                <span>{t('cart.itemsCostSubtotal')}</span>
                 <span className="text-gray-800 font-bold">₹{subtotal}</span>
               </div>
               
               {activeCoupon && (
                 <div className="flex justify-between text-emerald-700 font-bold">
-                  <span>Coupon Discount ({activeCoupon.percent}%):</span>
+                  <span>{t('cart.couponDiscount', { percent: activeCoupon.percent })}</span>
                   <span>- ₹{discountAmount}</span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span>Shipping Delivery Fee:</span>
+                <span>{t('cart.shippingDeliveryFee')}</span>
                 {deliveryCharges === 0 ? (
-                  <span className="text-emerald-700 font-black">FREE</span>
+                  <span className="text-emerald-700 font-black">{t('cart.free')}</span>
                 ) : (
                   <span className="text-gray-800 font-bold">₹{deliveryCharges}</span>
                 )}
               </div>
 
               {deliveryCharges > 0 && (
-                <p className="text-[9px] text-[#D4AF37] font-bold uppercase leading-none text-right">Add ₹{500 - subtotal} more for Free Delivery</p>
+                <p className="text-[9px] text-[#D4AF37] font-bold uppercase leading-none text-right">{t('cart.freeDeliveryMessage', { amount: 500 - subtotal })}</p>
               )}
 
               <div className="border-t border-gray-100 pt-4 flex justify-between text-base font-black text-gray-800">
-                <span>Order Total cost:</span>
+                <span>{t('cart.orderTotalCost')}</span>
                 <span className="text-siddha-dark">₹{total}</span>
               </div>
             </div>
@@ -242,13 +244,13 @@ export default function Cart() {
               onClick={() => navigate("/checkout")}
               className="w-full py-4 px-6 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1.5 shadow-sm"
             >
-              <span>Proceed to Checkout</span>
+              <span>{t('cart.checkout')}</span>
               <ArrowRight className="w-4 h-4 text-siddha-gold" />
             </button>
 
             <div className="pt-2 flex items-center justify-center space-x-2 text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>SSL Protected Checkout</span>
+              <span>{t('cart.sslProtectedCheckout')}</span>
             </div>
           </div>
 

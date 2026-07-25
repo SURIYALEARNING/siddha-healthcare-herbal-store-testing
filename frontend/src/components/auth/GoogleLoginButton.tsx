@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
 const GOOGLE_AUTH_URL = "http://localhost:5000/auth/google";
 
 export default function GoogleLoginButton() {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
       <button
@@ -15,7 +18,7 @@ export default function GoogleLoginButton() {
           cursor: 'pointer'
         }}
       >
-        Sign in with Google
+        {t("auth.signInWithGoogle")}
       </button>
     </div>
   );

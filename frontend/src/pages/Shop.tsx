@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -5,6 +6,7 @@ import { useShopFilters } from "../hooks/useShopFilters";
 import { ShopProductCard, ShopDesktopFilters, ShopMobileFilters } from "../components/shop";
 
 export default function Shop() {
+  const { t } = useTranslation();
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -24,10 +26,10 @@ export default function Shop() {
 
       <div className="mb-8 border-b border-gray-100 pb-5">
         <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight leading-none">
-          Traditional Therapeutics Pharmacy
+          {t('shop.title')}
         </h1>
         <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest mt-2">
-          Discover handpicked organic Siddha medicines, certified by Ministry of AYUSH
+          {t('shop.subtitle')}
         </p>
       </div>
 
@@ -52,7 +54,7 @@ export default function Shop() {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder="Search herbal remedies..."
+                placeholder={t('common.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-3 bg-white border border-gray-150 rounded-xl text-xs focus:outline-none focus:border-siddha-dark text-gray-800"
@@ -66,7 +68,7 @@ export default function Shop() {
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1 px-4 py-3 bg-white border border-gray-150 rounded-xl text-xs font-medium text-gray-600 active:bg-gray-50 cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4" />
-                <span>Filters {categoryFilter !== "All" ? `(${categoryFilter})` : ""}</span>
+                <span>{t('common.filters')}{categoryFilter !== "All" ? ` (${categoryFilter})` : ""}</span>
               </button>
 
               <select
@@ -74,10 +76,10 @@ export default function Shop() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="flex-1 sm:flex-none p-3 border border-gray-150 bg-white rounded-xl text-xs text-gray-600 focus:outline-none cursor-pointer"
               >
-                <option value="newest">Newest Item</option>
-                <option value="best-selling">Best Sellers</option>
-                <option value="price-low">Price Low-High</option>
-                <option value="price-high">Price High-Low</option>
+                <option value="newest">{t('common.newestItem')}</option>
+                <option value="best-selling">{t('common.bestSellers')}</option>
+                <option value="price-low">{t('common.priceLow')}</option>
+                <option value="price-high">{t('common.priceHigh')}</option>
               </select>
             </div>
           </div>
@@ -96,8 +98,9 @@ export default function Shop() {
 
           <div className="flex justify-between items-center px-2">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-              Displaying <span className="text-gray-800 font-bold">{sortedProducts.length}</span> results
-              {categoryFilter !== "All" && <span> within {categoryFilter}</span>}
+              {categoryFilter !== "All"
+                ? t('shop.displayingResults', { count: sortedProducts.length, category: categoryFilter })
+                : t('shop.displayingResults', { count: sortedProducts.length })}
             </p>
           </div>
 
@@ -124,15 +127,15 @@ export default function Shop() {
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-gray-400 mx-auto">
                 <SlidersHorizontal className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-emerald-950">No remedies match filters</h3>
+              <h3 className="text-lg font-bold text-emerald-950">{t('shop.noResultsTitle')}</h3>
               <p className="text-xs text-gray-400 max-w-md mx-auto">
-                We couldn't located any traditional offerings aligned with your filters. Clear keywords or slide price filter bounds upwards.
+                {t('shop.noResultsMessage')}
               </p>
               <button
                 onClick={resetFilters}
                 className="px-4 py-2 bg-siddha-dark text-white rounded-xl text-xs font-bold cursor-pointer"
               >
-                Reset All Filters
+                {t('shop.resetFilters')}
               </button>
             </div>
           )}
@@ -153,6 +156,7 @@ function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
+  const { t } = useTranslation();
   const pages: number[] = [];
   const start = Math.max(1, currentPage - 2);
   const end = Math.min(totalPages, currentPage + 2);
@@ -165,7 +169,7 @@ function Pagination({
         disabled={currentPage <= 1}
         className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
       >
-        Prev
+        {t('common.prev')}
       </button>
       {start > 1 && (
         <>
@@ -197,7 +201,7 @@ function Pagination({
         disabled={currentPage >= totalPages}
         className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
       >
-        Next
+        {t('common.next')}
       </button>
     </div>
   );

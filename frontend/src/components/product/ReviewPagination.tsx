@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ReviewPaginationProps {
@@ -7,6 +8,7 @@ interface ReviewPaginationProps {
 }
 
 export function ReviewPagination({ page, totalPages, onPageChange }: ReviewPaginationProps) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
   return (
@@ -17,7 +19,7 @@ export function ReviewPagination({ page, totalPages, onPageChange }: ReviewPagin
         className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         <ChevronLeft className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Previous</span>
+        <span className="hidden sm:inline">{t('common.prev')}</span>
       </button>
 
       <div className="flex gap-1">
@@ -53,7 +55,7 @@ export function ReviewPagination({ page, totalPages, onPageChange }: ReviewPagin
         disabled={page >= totalPages}
         className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
-        <span className="hidden sm:inline">Next</span>
+        <span className="hidden sm:inline">{t('common.next')}</span>
         <ChevronRight className="w-3.5 h-3.5" />
       </button>
     </div>

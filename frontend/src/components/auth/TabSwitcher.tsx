@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 interface TabSwitcherProps {
   active: "login" | "register";
   onChange: (tab: "login" | "register") => void;
 }
 
 export default function TabSwitcher({ active, onChange }: TabSwitcherProps) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-2 border-b border-gray-100 pb-1.5">
       {(["login", "register"] as const).map((tab) => (
@@ -17,7 +20,7 @@ export default function TabSwitcher({ active, onChange }: TabSwitcherProps) {
               : "text-gray-400 hover:text-gray-600"
           }`}
         >
-          {tab === "login" ? "Sign In" : "Register"}
+          {tab === "login" ? t("auth.signIn") : t("auth.register")}
         </button>
       ))}
     </div>

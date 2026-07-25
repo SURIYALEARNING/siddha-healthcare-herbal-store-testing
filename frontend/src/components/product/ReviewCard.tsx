@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ThumbsUp } from "lucide-react";
 import { Review } from "../../types";
 import { RatingStars } from "./RatingStars";
@@ -19,6 +20,7 @@ function formatDate(dateStr: string) {
 }
 
 export function ReviewCard({ review, onHelpful, isOwn }: ReviewCardProps) {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 transition-all duration-200 hover:shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -35,7 +37,7 @@ export function ReviewCard({ review, onHelpful, isOwn }: ReviewCardProps) {
           </div>
         </div>
         {isOwn && (
-          <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">Your Review</span>
+          <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">{t('productDetails.yourReview')}</span>
         )}
       </div>
 
@@ -57,7 +59,7 @@ export function ReviewCard({ review, onHelpful, isOwn }: ReviewCardProps) {
             <img
               key={i}
               src={img}
-              alt="Review"
+              alt={t('productDetails.reviewImages')}
               className="w-16 h-16 rounded-lg object-cover border border-gray-100 shrink-0"
             />
           ))}
@@ -70,7 +72,7 @@ export function ReviewCard({ review, onHelpful, isOwn }: ReviewCardProps) {
           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-emerald-600 transition-colors cursor-pointer pt-1"
         >
           <ThumbsUp className="w-3.5 h-3.5" />
-          <span>Helpful ({review.helpfulCount || 0})</span>
+          <span>{t('productDetails.helpful', { count: review.helpfulCount || 0 })}</span>
         </button>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useApp } from "../context/AppContext";
 import ShippingForm from "../components/checkout/ShippingForm";
 import PaymentSelector from "../components/checkout/PaymentSelector";
@@ -18,6 +19,7 @@ function loadRazorpayScript(): Promise<void> {
 }
 
 export default function Checkout() {
+  const { t } = useTranslation();
   const { cart, activeCoupon, user, submitOrder, error } = useApp();
   const navigate = useNavigate();
 
@@ -63,15 +65,15 @@ export default function Checkout() {
     setValidationError("");
 
     if (!fullName || !mobileNumber || !address || !state || !district || !pincode) {
-      setValidationError("Please fill out all required shipping fields.");
+      setValidationError(t('checkout.validation.fillFields'));
       return;
     }
     if (!/^[0-9]{10}$/.test(mobileNumber)) {
-      setValidationError("Please specify a valid 10-digit mobile number.");
+      setValidationError(t('checkout.validation.invalidMobile'));
       return;
     }
     if (!/^[0-9]{6}$/.test(pincode)) {
-      setValidationError("Please specify a valid 6-digit postal pincode.");
+      setValidationError(t('checkout.validation.invalidPincode'));
       return;
     }
 
@@ -113,20 +115,20 @@ export default function Checkout() {
               setOrderSubmitting(false);
               if (placedOrder) navigate("/track-order", { state: { justPlacedId: placedOrder.id } });
             } else {
-              setValidationError("Payment verification failed. Please contact support.");
+              setValidationError(t('checkout.validation.paymentFailed'));
               setOrderSubmitting(false);
             }
           },
           modal: {
             ondismiss: () => {
               setOrderSubmitting(false);
-              setValidationError("Payment cancelled. Please try again.");
+              setValidationError(t('checkout.validation.paymentCancelled'));
             },
           },
         });
         razorpay.open();
       } catch (err: any) {
-        setValidationError(err.message || "Payment processing failed.");
+        setValidationError(err.message || t('checkout.validation.paymentFailed'));
         setOrderSubmitting(false);
       }
     }

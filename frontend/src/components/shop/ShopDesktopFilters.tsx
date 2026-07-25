@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Search } from "lucide-react";
 
 interface ShopDesktopFiltersProps {
@@ -25,14 +26,15 @@ export function ShopDesktopFilters({
   sortBy,
   onSortChange,
 }: ShopDesktopFiltersProps) {
+  const { t } = useTranslation();
   return (
     <aside className="hidden lg:block lg:col-span-3 bg-white p-6 rounded-2xl border border-gray-100 space-y-6 sticky top-24">
       <div className="space-y-2">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Catalog</h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('common.searchCatalog')}</h3>
         <div className="relative">
           <input
             type="text"
-            placeholder="Ex. Kabasura, Sandal..."
+            placeholder={t('common.searchExPlaceholder')}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:outline-none focus:border-siddha-dark focus:bg-white text-gray-800 transition-colors"
@@ -42,7 +44,7 @@ export function ShopDesktopFilters({
       </div>
 
       <div className="space-y-2.5">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Categories</h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('common.categories')}</h3>
         <div className="flex flex-col space-y-1">
           {categories.map((c) => (
             <button
@@ -62,7 +64,7 @@ export function ShopDesktopFilters({
 
       <div className="space-y-2.5">
         <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold">
-          <span>Max Budget Price</span>
+          <span>{t('common.maxBudgetPrice')}</span>
           <span className="text-siddha-dark font-black">&#8377;{maxPrice}</span>
         </div>
         <input
@@ -81,16 +83,16 @@ export function ShopDesktopFilters({
       </div>
 
       <div className="space-y-2.5">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Sorter</h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('common.orderSorter')}</h3>
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
           className="w-full p-2.5 border border-gray-150 rounded-xl text-xs bg-gray-50 text-gray-600 focus:outline-none focus:border-siddha-dark cursor-pointer"
         >
-          <option value="newest">Newest Launch</option>
-          <option value="best-selling">Top Popularity</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
+          <option value="newest">{t('common.newestLaunch')}</option>
+          <option value="best-selling">{t('common.topPopularity')}</option>
+          <option value="price-low">{t('common.priceLowToHigh')}</option>
+          <option value="price-high">{t('common.priceHighToLow')}</option>
         </select>
       </div>
     </aside>

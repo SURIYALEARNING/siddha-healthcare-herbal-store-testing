@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface PaymentSelectorProps {
   paymentMethod: string;
   setPaymentMethod: (v: string) => void;
@@ -12,10 +14,11 @@ const paymentMethodsList = [
 ];
 
 export default function PaymentSelector({ paymentMethod, setPaymentMethod }: PaymentSelectorProps) {
+  const { t } = useTranslation();
   return (
     <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xs">
-      <h3 className="text-base font-bold font-display text-emerald-950">2. Select Payment Route</h3>
-      <p className="text-xs text-gray-400 block pb-1">Gateway integrations are encapsulated modularly. Razorpay triggers can be attached natively later.</p>
+      <h3 className="text-base font-bold font-display text-emerald-950">{t('checkout.paymentMethod')}</h3>
+      <p className="text-xs text-gray-400 block pb-1">{t('checkout.paymentSubtext')}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {paymentMethodsList.map((payOpt) => {
@@ -34,7 +37,7 @@ export default function PaymentSelector({ paymentMethod, setPaymentMethod }: Pay
                 <div>
                   <h4 className="text-xs font-bold text-emerald-950">{payOpt.title}</h4>
                   <p className="text-[9px] text-gray-400 uppercase font-semibold mt-0.5">
-                    {payOpt.id === "Cash on Delivery" ? "Pay at your door" : "100% Secured Netway"}
+                    {payOpt.id === "Cash on Delivery" ? t('checkout.codDesc') : t('checkout.securedDesc')}
                   </p>
                 </div>
               </div>

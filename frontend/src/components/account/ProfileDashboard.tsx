@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { User } from "../../types";
 
 interface ProfileDashboardProps {
@@ -9,6 +10,7 @@ interface ProfileDashboardProps {
 }
 
 export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [address, setAddress] = useState("");
@@ -37,16 +39,16 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
     const ok = await onSave(fullName, mobileNumber, { address, state, district, pincode });
 
     if (ok) {
-      setSuccessMsg("Profile and Shipping address updated successfully!");
+      setSuccessMsg(t("messages.successMessage"));
       setTimeout(() => setSuccessMsg(""), 4000);
     } else {
-      setErrorMsg("Failed to modify user profile. Try again.");
+      setErrorMsg(t("messages.errorMessage"));
     }
   };
 
   return (
     <div className="space-y-6">
-      <h3 className="text-base font-bold text-gray-850 uppercase tracking-wider border-b border-gray-50 pb-2.5">Profile Management</h3>
+      <h3 className="text-base font-bold text-gray-850 uppercase tracking-wider border-b border-gray-50 pb-2.5">{t("user.editProfile")}</h3>
 
       {successMsg && (
         <p className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-xl text-xs font-bold">{successMsg}</p>
@@ -58,7 +60,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Registered Full Name</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.name")}</label>
             <input
               type="text"
               value={fullName}
@@ -68,7 +70,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase font-mono">Mobile Number</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase font-mono">{t("auth.phone")}</label>
             <input
               type="text"
               value={mobileNumber}
@@ -80,16 +82,16 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
         </div>
 
         <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-dashed border-gray-150">
-          <label className="text-[10px] font-bold text-gray-400 uppercase block">Registered Authorization Email</label>
+          <label className="text-[10px] font-bold text-gray-400 uppercase block">{t("auth.email")}</label>
           <span className="text-xs font-bold text-emerald-950 font-mono select-all block mt-1">{user.email}</span>
-          <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mt-1 leading-none">• Email addresses are unique credentials and cannot be changed.</p>
+          <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mt-1 leading-none">• {t("messages.required")}</p>
         </div>
 
         <div>
-          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3 mt-4">Default Delivery Address Info:</h4>
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3 mt-4">{t("user.addresses")}:</h4>
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase">Home Address</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase">{t("checkout.address")}</label>
               <input
                 type="text"
                 placeholder="Ex. 123/B, Prime Colony Street"
@@ -100,7 +102,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">District</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">{t("checkout.district")}</label>
                 <input
                   type="text"
                   placeholder="Ex. Coimbatore"
@@ -110,7 +112,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">State</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">{t("checkout.state")}</label>
                 <input
                   type="text"
                   value={state}
@@ -119,7 +121,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase p-0.5">Pincode</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase p-0.5">{t("checkout.pincode")}</label>
                 <input
                   type="text"
                   placeholder="Ex. 641004"
@@ -137,7 +139,7 @@ export default function ProfileDashboard({ user, onSave }: ProfileDashboardProps
             type="submit"
             className="px-6 py-3 bg-siddha-dark text-white rounded-xl text-xs font-bold transition-all hover:bg-emerald-800 cursor-pointer shadow-xs"
           >
-            Save Changes
+            {t("common.save")}
           </button>
         </div>
       </form>

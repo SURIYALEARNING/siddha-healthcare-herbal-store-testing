@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Info, Sparkles } from "lucide-react";
 
@@ -9,14 +10,15 @@ interface ProductTabsProps {
 
 type Tab = "ingredients" | "benefits" | "usage";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "ingredients", label: "ingredients" },
-  { id: "benefits", label: "benefits" },
-  { id: "usage", label: "How to Use" },
-];
-
 export default function ProductTabs({ ingredients, benefits, usageInstructions }: ProductTabsProps) {
+  const { t } = useTranslation();
   const [active, setActive] = useState<Tab>("benefits");
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: "ingredients", label: t('product.ingredients') },
+    { id: "benefits", label: t('product.benefits') },
+    { id: "usage", label: t('product.usageInstructions') },
+  ];
 
   return (
     <section className="mt-12 bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 space-y-6">
@@ -41,7 +43,7 @@ export default function ProductTabs({ ingredients, benefits, usageInstructions }
           <div className="space-y-4">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center">
               <Info className="w-4 h-4 text-siddha-dark mr-1.5" />
-              Raw Organic Sourcing list:
+              {t('product.rawOrganicSourcing')}
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {ingredients?.map((ing, idx) => (
@@ -58,7 +60,7 @@ export default function ProductTabs({ ingredients, benefits, usageInstructions }
           <div className="space-y-4">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center">
               <Sparkles className="w-4 h-4 text-siddha-gold animate-bounce mr-1.5" />
-              Therapeutic Health Advantages:
+              {t('product.therapeuticHealthAdvantages')}
             </p>
             <ul className="space-y-2">
               {benefits?.map((ben, idx) => (
@@ -75,7 +77,7 @@ export default function ProductTabs({ ingredients, benefits, usageInstructions }
           <div className="space-y-4">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center">
               <Info className="w-4 h-4 text-siddha-dark mr-1.5" />
-              Direction Rules & Dosage Levels:
+              {t('product.directionRules')}
             </p>
             <ol className="space-y-3">
               {usageInstructions?.map((ins, idx) => (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
@@ -13,6 +14,7 @@ import type { Product } from "../types";
 import { fetchProductByIdApi } from "../api/products";
 
 export default function ProductDetails() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
@@ -49,9 +51,9 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-gray-800">Locating Siddha formulation...</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t('productDetails.loading')}</h2>
         <Link to="/shop" className="text-sm font-bold text-siddha-dark hover:underline">
-          Return to Pharmacy
+          {t('productDetails.returnToShop')}
         </Link>
       </div>
     );
@@ -80,7 +82,7 @@ export default function ProductDetails() {
         className="inline-flex items-center space-x-1 text-xs font-bold text-gray-500 hover:text-siddha-dark uppercase tracking-wider mb-6 cursor-pointer"
       >
         <ChevronLeft className="w-4 h-4" />
-        <span>Back to Remedies Gallery</span>
+        <span>{t('product.remediesGallery')}</span>
       </Link>
 
       <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -106,9 +108,9 @@ export default function ProductDetails() {
           />
 
           <div className="flex justify-around bg-slate-50 border border-slate-100 rounded-2xl py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest divide-x divide-gray-150">
-            <div className="flex-1">Ministry of Ayush</div>
-            <div className="flex-1">Zero Chemical pres.</div>
-            <div className="flex-1">India-wide Delivery</div>
+            <div className="flex-1">{t('productDetails.ministryBadge')}</div>
+            <div className="flex-1">{t('productDetails.zeroChemicalBadge')}</div>
+            <div className="flex-1">{t('productDetails.indiaDeliveryBadge')}</div>
           </div>
         </div>
       </div>

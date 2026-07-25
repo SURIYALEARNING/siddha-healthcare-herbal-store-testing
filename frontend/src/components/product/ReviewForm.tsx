@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Star, Send } from "lucide-react";
 import { ReviewFormData } from "../../types";
@@ -10,6 +11,7 @@ interface ReviewFormProps {
 }
 
 export function ReviewForm({ onSubmit, onCancel, initialData, isSubmitting }: ReviewFormProps) {
+  const { t } = useTranslation();
   const [rating, setRating] = useState(initialData?.rating || 5);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState(initialData?.title || "");
@@ -32,7 +34,7 @@ export function ReviewForm({ onSubmit, onCancel, initialData, isSubmitting }: Re
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Your Rating
+          {t('product.yourRating')}
         </label>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -58,25 +60,25 @@ export function ReviewForm({ onSubmit, onCancel, initialData, isSubmitting }: Re
 
       <div className="space-y-2">
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Review Title (Optional)
+          {t('product.reviewTitle')}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Summarize your experience"
+          placeholder={t('product.reviewTitlePlaceholder')}
           className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:bg-white text-xs rounded-xl focus:outline-none placeholder-gray-400 text-gray-800 transition-colors"
         />
       </div>
 
       <div className="space-y-2">
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Your Review
+          {t('product.yourReview')}
         </label>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Share your experience with this product..."
+          placeholder={t('product.reviewPlaceholder')}
           rows={4}
           className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:bg-white text-xs rounded-xl focus:outline-none placeholder-gray-400 text-gray-800 transition-colors resize-none"
           required
@@ -92,12 +94,12 @@ export function ReviewForm({ onSubmit, onCancel, initialData, isSubmitting }: Re
           {isSubmitting ? (
             <>
               <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Submitting...
+              {t('common.submitting')}
             </>
           ) : (
             <>
               <Send className="w-3.5 h-3.5" />
-              {initialData ? "Update Review" : "Submit Review"}
+              {initialData ? t('common.update') : t('common.submit')}
             </>
           )}
         </button>
@@ -107,7 +109,7 @@ export function ReviewForm({ onSubmit, onCancel, initialData, isSubmitting }: Re
             onClick={onCancel}
             className="px-4 py-2.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         )}
       </div>

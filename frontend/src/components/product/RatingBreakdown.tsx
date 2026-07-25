@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Star } from "lucide-react";
 import { ReviewStats } from "../../types";
 
@@ -11,6 +12,7 @@ interface RatingBreakdownProps {
 const STAR_LABELS = [5, 4, 3, 2, 1];
 
 export function RatingBreakdown({ stats, averageRating, onFilterRating, activeRating }: RatingBreakdownProps) {
+  const { t } = useTranslation();
   const { totalReviews, rating1, rating2, rating3, rating4, rating5 } = stats;
   const countMap = { 1: rating1, 2: rating2, 3: rating3, 4: rating4, 5: rating5 };
 
@@ -29,7 +31,7 @@ export function RatingBreakdown({ stats, averageRating, onFilterRating, activeRa
               ))}
             </div>
             <span className="text-xs text-gray-400 font-medium block">
-              {totalReviews} {totalReviews === 1 ? "Review" : "Reviews"}
+              {totalReviews} {totalReviews === 1 ? t('product.reviewSingular') : t('product.reviewPlural')}
             </span>
           </div>
         </div>

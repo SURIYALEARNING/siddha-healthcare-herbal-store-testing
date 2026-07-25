@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import { useTranslation } from "react-i18next";
 import HeroCarousel from "../components/HeroCarousel";
 import ProductPromoCarousel from "../components/ProductPromoCarousel";
 import { promoData } from "../data/promoData";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function Home({ onConsultationClick }: { onConsultationClick: () => void }) {
+  const { t } = useTranslation();
   const { products, blogs, addToCart, toggleWishlist, isInWishlist } = useApp();
   const navigate = useNavigate();
 
@@ -77,14 +79,13 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
           </div>
           <div className="w-full md:w-[60%] text-center md:text-left space-y-3">
             <h2 className="text-2xl sm:text-3xl font-bold font-display text-emerald-950 tracking-tight">
-              Ayush Siddha Healthcare
+              {t("home.brandHeading")}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic font-serif">
-              "Healing the body, mind, and spirit through the ancient wisdom of Siddha medicine —
-              restoring balance to Vatham, Pitham, and Kabham with pure, natural remedies."
+              {t("home.brandQuote")}
             </p>
             <p className="text-xs text-gray-400 font-semibold tracking-wider uppercase">
-              — Ministry of Ayush Certified | Since 2012
+              {t("home.brandCertification")}
             </p>
           </div>
         </div>
@@ -94,10 +95,10 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="text-3xl font-bold font-serif text-emerald-950 tracking-tight">
-            Restoring Balanced Humors Since 2012
+            {t("home.whyChooseUs")}
           </h2>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed font-sans">
-            Siddha medicine acknowledges that a perfect baseline of health implies a state of harmony among the three vital fluids: wind (Vatham), fire (Pitham), and phlegm (Kabham).
+            {t("home.whyChooseUsDesc")}
           </p>
         </div>
 
@@ -106,9 +107,9 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
             <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">Ministry of AYUSH</h3>
+            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitAyush")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Approved formulations meticulously manufactured meeting GMP standards of traditional Indian systems.
+              {t("home.benefitAyushDesc")}
             </p>
           </div>
 
@@ -116,9 +117,9 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
             <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
               <Leaf className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">Natural Ingredients Only</h3>
+            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitNatural")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Strictly zero heavy metal, zero chemical dyes, zero artificial preservatives. Crafted purely from dry herbs.
+              {t("home.benefitNaturalDesc")}
             </p>
           </div>
 
@@ -126,9 +127,9 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
             <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
               <HelpCircle className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">AI Health Grounding</h3>
+            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitAI")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Our Agathiyar AI Assistant chatbot resolves any daily wellness or herbal inquiry from standard traditional scriptures instantly.
+              {t("home.benefitAIDesc")}
             </p>
           </div>
 
@@ -136,40 +137,32 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
             <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
               <Clock className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">Online Prescriptions</h3>
+            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitOnline")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Schedule live virtual tele-consultations and get herbal prescriptions delivered straight onto your doorstep.
+              {t("home.benefitOnlineDesc")}
             </p>
           </div>
         </div>
       </section>
 
-  
-
-
       <ProductPromoCarousel items={promoData} />
 
       <Shop />
-
-
-   
-
-
 
       {/* 6. HEALTH ARTICLES & BLOG PREVIEWS */}
       <section className="bg-slate-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-10">
             <div>
-              <span className="text-xs font-bold text-siddha-dark uppercase tracking-widest block mb-1">Ancient Sciences</span>
-              <h2 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">Siddha Wellness Blog</h2>
+              <span className="text-xs font-bold text-siddha-dark uppercase tracking-widest block mb-1">{t("home.blogSection")}</span>
+              <h2 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">{t("home.blogTitle")}</h2>
             </div>
             <Link
               to="/blogs"
               className="text-sm font-bold text-siddha-dark hover:text-emerald-800 flex items-center space-x-1"
             >
               <BookOpen className="w-4 h-4 mr-0.5" />
-              <span>Read All Articles</span>
+              <span>{t("home.readAllArticles")}</span>
             </Link>
           </div>
 
@@ -210,8 +203,8 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
       {/* 7. CUSTOMER TESTIMONIALS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <span className="text-xs font-bold text-siddha-dark uppercase tracking-widest">Our Devotees</span>
-          <h2 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">Stories of Natural Recovery</h2>
+          <span className="text-xs font-bold text-siddha-dark uppercase tracking-widest">{t("home.testimonials")}</span>
+          <h2 className="text-3xl font-bold font-display text-emerald-950 tracking-tight">{t("home.testimonialsTitle")}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,46 +235,44 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
         </div>
       </section>
 
- 
-
       {/* footer details */}
       <footer className="bg-emerald-950 text-emerald-200 text-xs py-8 px-4 rounded-t-3xl border-t border-emerald-800">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h4 className="text-white font-bold mb-3">Siddha Healing Store</h4>
+            <h4 className="text-white font-bold mb-3">{t("footer.storeName")}</h4>
             <p className="text-emerald-300 leading-relaxed font-light">
-              We preserve natural herbal wisdom under direct BSMS physician supervisions, formulating safe organic remedies.
+              {t("footer.storeDescription")}
             </p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-3">Remedies Library</h4>
+            <h4 className="text-white font-bold mb-3">{t("footer.remediesLibrary")}</h4>
             <ul className="space-y-1 text-emerald-300 font-light">
-              <li><Link to="/shop?category=Immunity%20Boosters" className="hover:text-white">Immunity Boosters</Link></li>
-              <li><Link to="/shop?category=Digestive%20Care" className="hover:text-white">Digestive Care</Link></li>
-              <li><Link to="/shop?category=Skin%20Care" className="hover:text-white">Skin Care</Link></li>
-              <li><Link to="/shop?category=Hair%20Care" className="hover:text-white">Hair Care</Link></li>
+              <li><Link to="/shop?category=Immunity%20Boosters" className="hover:text-white">{t("footer.immunityBoosters")}</Link></li>
+              <li><Link to="/shop?category=Digestive%20Care" className="hover:text-white">{t("footer.digestiveCare")}</Link></li>
+              <li><Link to="/shop?category=Skin%20Care" className="hover:text-white">{t("footer.skinCare")}</Link></li>
+              <li><Link to="/shop?category=Hair%20Care" className="hover:text-white">{t("footer.hairCare")}</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-3">Shortcuts</h4>
+            <h4 className="text-white font-bold mb-3">{t("footer.shortcuts")}</h4>
             <ul className="space-y-1 text-emerald-300 font-light">
-              <li><Link to="/track-order" className="hover:text-white">Track Order ID</Link></li>
-              <li><button onClick={onConsultationClick} className="hover:text-white text-left">Book Consultation</button></li>
-              <li><Link to="/about" className="hover:text-white">About the Clinic</Link></li>
-              <li><Link to="/contact" className="hover:text-white">Contact Page</Link></li>
+              <li><Link to="/track-order" className="hover:text-white">{t("footer.trackOrder")}</Link></li>
+              <li><button onClick={onConsultationClick} className="hover:text-white text-left">{t("footer.bookConsultation")}</button></li>
+              <li><Link to="/about" className="hover:text-white">{t("footer.aboutClinic")}</Link></li>
+              <li><Link to="/contact" className="hover:text-white">{t("footer.contactPage")}</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-3">Address Location</h4>
+            <h4 className="text-white font-bold mb-3">{t("footer.addressLocation")}</h4>
             <p className="text-emerald-350 leading-relaxed font-light">
-              Ayush Siddha Clinic<br />
-              12, Traditional Herb Street,<br />
-              Tamil Nadu, India.
+              {t("footer.clinicName")}<br />
+              {t("footer.addressLine1")}<br />
+              {t("footer.addressLine2")}
             </p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto text-center border-t border-emerald-900/50 mt-8 pt-4 text-[11px] text-emerald-400">
-          © 2026 Ayush Siddha Healthcare Clinic & Herbal Store. Ministry of AYUSH Standards Approved.
+          {t("footer.copyrightText")}
         </div>
       </footer>
 

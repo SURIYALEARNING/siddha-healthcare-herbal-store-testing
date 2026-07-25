@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface ForgotPasswordProps {
   email: string;
   onEmailChange: (v: string) => void;
@@ -6,16 +8,17 @@ interface ForgotPasswordProps {
 }
 
 export default function ForgotPassword({ email, onEmailChange, onSubmit, onBack }: ForgotPasswordProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="text-center space-y-1.5">
-        <h3 className="text-lg font-bold text-emerald-900 leading-none">Password recovery</h3>
-        <p className="text-xs text-gray-400">Specify register email to receive recovery instructions</p>
+        <h3 className="text-lg font-bold text-emerald-900 leading-none">{t("auth.resetPassword")}</h3>
+        <p className="text-xs text-gray-400">{t("auth.forgotPasswordInstructions")}</p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-gray-400 uppercase">Registered Email</label>
+          <label className="text-[10px] font-bold text-gray-400 uppercase">{t("auth.email")}</label>
           <input
             type="email"
             placeholder="suriyashankara@gmail.com"
@@ -30,7 +33,7 @@ export default function ForgotPassword({ email, onEmailChange, onSubmit, onBack 
           type="submit"
           className="w-full py-3 bg-siddha-dark text-white rounded-xl text-xs font-bold cursor-pointer"
         >
-          Dispatch Reset Email
+          {t("auth.resetPassword")}
         </button>
 
         <button
@@ -38,7 +41,7 @@ export default function ForgotPassword({ email, onEmailChange, onSubmit, onBack 
           className="w-full text-xs text-gray-400 hover:text-gray-750 block text-center cursor-pointer"
           type="button"
         >
-          Back to Authentication Panel
+          {t("auth.backToAuth")}
         </button>
       </form>
     </div>

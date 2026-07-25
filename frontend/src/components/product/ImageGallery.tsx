@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 
 interface ImageGalleryProps {
@@ -7,6 +8,7 @@ interface ImageGalleryProps {
 }
 
 export default function ImageGallery({ images, name, hasDiscount }: ImageGalleryProps) {
+  const { t } = useTranslation();
   const [active, setActive] = useState(images[0]);
 
   return (
@@ -20,7 +22,7 @@ export default function ImageGallery({ images, name, hasDiscount }: ImageGallery
         />
         {hasDiscount && (
           <span className="absolute top-4 left-4 bg-siddha-gold text-siddha-dark text-[10px] uppercase font-black px-3 py-1 rounded-full shadow-xs">
-            Offer
+            {t('product.offer')}
           </span>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { CartItem } from "../../types";
 import { formatCurrency } from "../../utils";
 
@@ -9,6 +10,7 @@ interface CartItemRowProps {
 }
 
 export function CartItemRow({ item, stock, onUpdateQuantity, onRemove }: CartItemRowProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100">
       <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
@@ -29,7 +31,7 @@ export function CartItemRow({ item, stock, onUpdateQuantity, onRemove }: CartIte
               className="px-3 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
             >+</button>
           </div>
-          <button onClick={() => onRemove(item.productId)} className="text-red-500 hover:text-red-700 text-sm cursor-pointer">Remove</button>
+          <button onClick={() => onRemove(item.productId)} className="text-red-500 hover:text-red-700 text-sm cursor-pointer">{t('cart.removeProduct')}</button>
         </div>
       </div>
       <div className="text-right">

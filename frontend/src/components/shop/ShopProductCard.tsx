@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { Star, Heart, ShoppingBag } from "lucide-react";
 import { Product } from "../../types";
 
@@ -16,6 +17,7 @@ export const ShopProductCard = memo(function ShopProductCard({
   onToggleWishlist,
   onAddToCart,
 }: ShopProductCardProps) {
+  const { t } = useTranslation();
   const hasDiscount = p.discountPrice < p.price;
   const [reviewIndex, setReviewIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -36,16 +38,16 @@ export const ShopProductCard = memo(function ShopProductCard({
       <div className="absolute top-6 left-6 flex flex-col space-y-1 z-10">
         {hasDiscount && (
           <span className="bg-[#a49870] text-siddha-dark text-[9px] font-black uppercase px-2 py-0.5 rounded">
-            Offer
+            {t('product.offer')}
           </span>
         )}
         {p.stock <= 0 ? (
           <span className="bg-rose-100 text-rose-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">
-            Sold Out
+            {t('product.soldOut')}
           </span>
         ) : p.stock < 10 ? (
           <span className="bg-amber-100 text-amber-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">
-            Short Stock
+            {t('product.shortStock')}
           </span>
         ) : null}
       </div>
@@ -85,7 +87,7 @@ export const ShopProductCard = memo(function ShopProductCard({
       {reviews.length > 0 && (
         <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/40 shadow-sm px-3 py-2 min-h-[4rem]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Review</span>
+            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">{t('product.review')}</span>
             <div className="flex">
               {Array.from({ length: 5 }, (_, i) => (
                 <Star
@@ -117,10 +119,10 @@ export const ShopProductCard = memo(function ShopProductCard({
             className="px-3.5 py-1.5 bg-siddha-light hover:bg-[#cbfcd9] text-siddha-dark rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer"
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Add to Bag</span>
+            <span>{t('product.addToBag')}</span>
           </button>
         ) : (
-          <span className="text-xs font-bold text-gray-400">Sold out</span>
+          <span className="text-xs font-bold text-gray-400">{t('product.outOfStock')}</span>
         )}
       </div>
     </div>

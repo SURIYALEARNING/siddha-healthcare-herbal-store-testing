@@ -1,8 +1,8 @@
-import { LogOut, Database, LayoutDashboard, ShoppingBag, CalendarClock, TicketPercent, Users, Truck } from "lucide-react";
+import { LogOut, Database, LayoutDashboard, ShoppingBag, CalendarClock, TicketPercent, Users, Truck, FolderTree, PackagePlus } from "lucide-react";
 import { User } from "../../types";
 import TabButton from "./TabButton";
 
-export type TabId = "analytics" | "products" | "orders" | "coupons" | "consultations" | "shipping";
+export type TabId = "analytics" | "products" | "categories" | "products-v2" | "orders" | "coupons" | "consultations" | "shipping";
 
 interface AdminHeaderProps {
   user: User;
@@ -14,6 +14,8 @@ interface AdminHeaderProps {
 const TABS: { id: TabId; label: string; Icon: typeof LayoutDashboard }[] = [
   { id: "analytics", label: "Stats & Analytics", Icon: LayoutDashboard },
   { id: "products", label: "Product Inventory", Icon: ShoppingBag },
+  { id: "categories", label: "Categories", Icon: FolderTree },
+  { id: "products-v2", label: "Multilingual Products", Icon: PackagePlus },
   { id: "coupons", label: "Discount Coupons", Icon: TicketPercent },
   { id: "consultations", label: "Doctor Consults", Icon: Users },
   { id: "orders", label: "Live Orders", Icon: CalendarClock },

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { Review, ReviewStats, ReviewFormData, PaginatedReviews } from "../../types";
 import { RatingBreakdown } from "./RatingBreakdown";
@@ -13,6 +14,7 @@ interface ReviewSectionProps {
 }
 
 export default function ReviewSection({ productId, initialStats }: ReviewSectionProps) {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(initialStats || null);
   const [page, setPage] = useState(1);
@@ -99,7 +101,6 @@ export default function ReviewSection({ productId, initialStats }: ReviewSection
   return (
     <section className="mt-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Rating Breakdown */}
         <div className="lg:col-span-4 bg-white rounded-2xl border border-gray-100 p-6 h-fit">
           <RatingBreakdown
             stats={stats || { averageRating: 0, totalReviews: 0, rating1: 0, rating2: 0, rating3: 0, rating4: 0, rating5: 0 }}
@@ -109,17 +110,15 @@ export default function ReviewSection({ productId, initialStats }: ReviewSection
           />
         </div>
 
-        {/* Right: Review list */}
         <div className="lg:col-span-8 space-y-5">
-          {/* Header bar */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-bold text-gray-800">
-                Reviews
+                {t('product.reviews')}
               </h3>
               {filterRating && (
                 <span className="text-xs text-gray-400">
-                  (filtered by {filterRating} star)
+                  {t('productDetails.filteredByRating', { rating: filterRating })}
                 </span>
               )}
             </div>
@@ -130,10 +129,10 @@ export default function ReviewSection({ productId, initialStats }: ReviewSection
                 onChange={(e) => { setSort(e.target.value); setPage(1); }}
                 className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:border-emerald-500 cursor-pointer"
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="highest">Highest Rated</option>
-                <option value="lowest">Lowest Rated</option>
+                <option value="newest">{t('productDetails.mostRecent')}</option>
+                <option value="oldest">{t('productDetails.oldestFirst')}</option>
+                <option value="highest">{t('productDetails.highestRating')}</option>
+                <option value="lowest">{t('productDetails.lowestRating')}</option>
               </select>
 
               <button
@@ -141,32 +140,29 @@ export default function ReviewSection({ productId, initialStats }: ReviewSection
                 className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
               >
                 <MessageSquarePlus className="w-3.5 h-3.5" />
-                {showForm ? "Cancel" : "Write a Review"}
+                {showForm ? t('common.cancel') : t('product.writeReview')}
               </button>
             </div>
           </div>
 
-          {/* Review form */}
           {showForm && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h4 className="font-bold text-gray-800 mb-4">Share Your Experience</h4>
+              <h4 className="font-bold text-gray-800 mb-4">{t('productDetails.shareExperience')}</h4>
               <ReviewForm onSubmit={handleSubmitReview} isSubmitting={submitting} />
             </div>
           )}
 
-          {/* Review list */}
           <ReviewList
             reviews={reviews}
             loading={loading}
             onHelpful={handleHelpful}
             emptyMessage={
               filterRating
-                ? `No ${filterRating}-star reviews yet.`
-                : "Be the first to share your experience with this product."
+                ? t('productDetails.noStarReviews', { rating: filterRating })
+                : t('productDetails.noReviews')
             }
           />
 
-          {/* Pagination */}
           <ReviewPagination
             page={page}
             totalPages={totalPages}
