@@ -132,9 +132,9 @@ router.post(
       // 4. Send Refresh Token inside an HTTP-Only Cookie (Highly Secure)
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true in production
-        sameSite: 'Strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.status(200).json({
@@ -189,7 +189,7 @@ router.get(
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      sameSite: 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -204,6 +204,69 @@ router.get(
 
 // 4. UPDATE PROFILE - Modify standard fields and address info
 // Frontend sends: { fullName, mobileNumber, address, state, district, pincode }
+router.post('/logout', (_req, res) => {
+  res.cookie('refreshToken', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
+    maxAge: 0,
+  });
+  res.json({ success: true, message: 'Logged out.' });
+});
+
+router.post('/refresh', async (req, res) => {
+  try {
+    const token = req.cookies?.refreshToken;
+    if (!token) {
+      return res.status(401).json({ message: "No refresh token provided." });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
+    } catch {
+      return res.status(401).json({ message: "Invalid or expired refresh token." });
+    }
+
+    const user = await User.findById(decoded.id).lean();
+    if (!user) {
+      return res.status(401).json({ message: "User not found." });
+    }
+
+    const accessToken = jwt.sign(
+      { id: user._id.toString(), isAdmin: user.isAdmin },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: '59m' }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id.toString() },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const userData = {
+      id: user._id.toString(),
+      fullName: user.fullName,
+      email: user.email,
+      mobileNumber: user.mobileNumber,
+      isAdmin: user.isAdmin,
+      address: user.address,
+    };
+
+    res.json({ success: true, accessToken, user: userData });
+  } catch (error) {
+    res.status(500).json({ message: "Server error during token refresh." });
+  }
+});
+
 router.put('/update-profile/:userId', async (req, res) => {
 
   

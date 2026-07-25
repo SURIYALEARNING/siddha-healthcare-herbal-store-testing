@@ -1,5 +1,5 @@
 import client from "./client";
-import { Order, ShippingStats, Shipment } from "../types";
+import { Order, ShippingStats, Shipment, PincodeResponse } from "../types";
 
 export const fetchShippingOrdersApi = async (): Promise<Order[]> => {
   const res = await client.get("/api/admin/shipping/orders");
@@ -45,4 +45,14 @@ export const getShipmentByOrderApi = async (orderId: string): Promise<Shipment |
   } catch {
     return null;
   }
+};
+
+export const checkPincodeApi = async (pincode: string, weight?: number, cod?: boolean): Promise<PincodeResponse> => {
+  const res = await client.post("/api/shipping/check-pincode", { pincode, weight, cod });
+  return res.data;
+};
+
+export const checkMyAddressApi = async (): Promise<PincodeResponse> => {
+  const res = await client.get("/api/shipping/check-my-address");
+  return res.data;
 };

@@ -5,14 +5,12 @@ import { deleteMedia } from "../services/uploadService.js";
 export async function getAllProducts(req, res) {
   try {
     const { page = 1, limit = 50, category, search, sort } = req.query;
-
-    console.log(page , limit, category, search, sort );
     
     const result = await getProductsWithLatestReviews({
       page: Number(page), limit: Number(limit),
       category, search, sort,
     });
-    console.log(result);
+ 
     
     res.status(200).json(result);
   } catch (error) {

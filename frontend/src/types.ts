@@ -235,6 +235,18 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface PincodeResponse {
+  success: boolean;
+  available: boolean;
+  message: string;
+  estimatedDays?: number;
+  codAvailable?: boolean;
+  prepaidAvailable?: boolean;
+  courier?: { name: string; company: string };
+  pincode?: string;
+  address?: string;
+}
+
 export interface User {
   id: string;
   fullName: string;

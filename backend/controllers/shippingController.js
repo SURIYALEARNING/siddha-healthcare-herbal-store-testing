@@ -1,5 +1,6 @@
 import Order from '../models/Order.js';
 import Shipment from '../models/Shipment.js';
+import { User } from '../models/User.js';
 import * as shiprocket from '../services/shiprocket.service.js';
 
 export async function getShippingOrders(req, res) {
@@ -203,5 +204,55 @@ export async function cancelShipment(req, res) {
     res.json({ message: "Shipment cancelled." });
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to cancel shipment." });
+  }
+}
+
+export async function checkPincode(req, res) {
+  try {
+    const { pincode, weight, cod } = req.body;
+
+    if (!pincode) {
+      return res.status(400).json({ success: false, message: "Pincode is required." });
+    }
+    if (!/^\d{6}$/.test(String(pincode))) {
+      return res.status(400).json({ success: false, message: "Invalid pincode format." });
+    }
+
+    const pickupPincode = process.env.SHIPROCKET_PICKUP_PINCODE || "600001";
+    const result = await shiprocket.checkServiceability({
+      pickupPincode,
+      deliveryPincode: String(pincode),
+      weight: Number(weight) || Number(process.env.SHIPROCKET_DEFAULT_WEIGHT) || 0.5,
+      cod: cod === true || cod === "true",
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Failed to check pincode serviceability." });
+  }
+}
+
+export async function checkMyAddress(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+    const addr = user.address;
+    if (!addr || !addr.pincode) {
+      return res.status(400).json({ success: false, message: "No default address found. Please add an address first." });
+    }
+
+    const pickupPincode = process.env.SHIPROCKET_PICKUP_PINCODE || "600001";
+    const result = await shiprocket.checkServiceability({
+      pickupPincode,
+      deliveryPincode: String(addr.pincode),
+      weight: Number(process.env.SHIPROCKET_DEFAULT_WEIGHT) || 0.5,
+      cod: false,
+    });
+
+    res.json({ ...result, pincode: addr.pincode, address: addr.address });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Failed to check address serviceability." });
   }
 }

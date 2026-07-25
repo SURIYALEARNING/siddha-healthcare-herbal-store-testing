@@ -5,6 +5,7 @@ const client = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 function isAdminRequest(url?: string): boolean {
@@ -38,6 +39,8 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+
 client.interceptors.response.use(
   (response) => {
     const toast = (window as any).__toast;
@@ -50,8 +53,65 @@ client.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
     const toast = (window as any).__toast;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh") &&
+      !originalRequest.url?.includes("/auth/logout")
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          const interval = setInterval(() => {
+            if (!isRefreshing) {
+              clearInterval(interval);
+              const newToken = localStorage.getItem("accessToken");
+              if (newToken) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                resolve(client(originalRequest));
+              } else {
+                resolve(Promise.reject(error));
+              }
+            }
+          }, 100);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data } = await axios.post(
+          client.defaults.baseURL + "/auth/refresh",
+          {},
+          { withCredentials: true }
+        );
+
+        const newToken = data.accessToken;
+        localStorage.setItem("accessToken", newToken);
+
+        if (data.user) {
+          localStorage.setItem("siddha_user", JSON.stringify(data.user));
+        }
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return client(originalRequest);
+      } catch {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("siddha_user");
+        if (toast) {
+          toast.showError("Session Expired", "Please log in again.");
+        }
+        window.location.href = "/auth";
+        return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     const status = error.response?.status;
     const msg = error.response?.data?.error || error.response?.data?.message || error.message;
 

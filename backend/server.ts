@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from './database.js';
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import passport from "./config/passport.js";
 
 import authRoutes from './routes/authRoutes.js';
@@ -19,7 +20,7 @@ import consultationRoutes from './routes/consultationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import paymentRoutes from './routes/payment.js';
-import shippingRoutes from './routes/shippingRoutes.js';
+import { router as adminShippingRoutes, publicRouter as publicShippingRoutes } from './routes/shippingRoutes.js';
 import Shipment from './models/Shipment.js';
 import Order from './models/Order.js';
 import { trackOrder } from './controllers/adminController.js';
@@ -30,7 +31,12 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
 
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -54,7 +60,8 @@ app.use("/api/consultation", consultationRoutes);
 app.use("/api/admin", adminRoutes);
 app.get("/api/orders/track/:id", trackOrder);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/admin/shipping", shippingRoutes);
+app.use("/api/admin/shipping", adminShippingRoutes);
+app.use("/api/shipping", publicShippingRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
 app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), async (req, res) => {

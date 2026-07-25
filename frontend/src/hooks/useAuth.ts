@@ -3,6 +3,7 @@ import { User, Address } from "../types";
 import { loginApi, registerApi, updateProfileApi } from "../api";
 import { storage } from "../utils";
 import { STORAGE_KEYS } from "../constants";
+import client from "../api/client";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(() => storage.get<User>(STORAGE_KEYS.USER));
@@ -62,9 +63,14 @@ export function useAuth() {
     }
   }, [user]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await client.post("/auth/logout");
+    } catch {
+    }
     setUser(null);
     storage.remove(STORAGE_KEYS.USER);
+    storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
   }, []);
 
   return { user, setUser, error, setError, login, googleAuth, register, logout, updateProfile };

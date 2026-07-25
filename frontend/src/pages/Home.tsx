@@ -235,43 +235,18 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
         </div>
       </section>
 
-      {/* footer details */}
       <footer className="bg-emerald-950 text-emerald-200 text-xs py-8 px-4 rounded-t-3xl border-t border-emerald-800">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h4 className="text-white font-bold mb-3">{t("footer.storeName")}</h4>
-            <p className="text-emerald-300 leading-relaxed font-light">
-              {t("footer.storeDescription")}
-            </p>
+        <div className="max-w-7xl mx-auto text-center md:text-left md:flex md:items-center md:justify-between gap-6">
+          <div className="space-y-1">
+            <h4 className="text-white font-bold text-sm">{t("footer.storeName")}</h4>
+            <p className="text-emerald-300 font-light">{t("footer.storeDescription")}</p>
           </div>
-          <div>
-            <h4 className="text-white font-bold mb-3">{t("footer.remediesLibrary")}</h4>
-            <ul className="space-y-1 text-emerald-300 font-light">
-              <li><Link to="/shop?category=Immunity%20Boosters" className="hover:text-white">{t("footer.immunityBoosters")}</Link></li>
-              <li><Link to="/shop?category=Digestive%20Care" className="hover:text-white">{t("footer.digestiveCare")}</Link></li>
-              <li><Link to="/shop?category=Skin%20Care" className="hover:text-white">{t("footer.skinCare")}</Link></li>
-              <li><Link to="/shop?category=Hair%20Care" className="hover:text-white">{t("footer.hairCare")}</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-3">{t("footer.shortcuts")}</h4>
-            <ul className="space-y-1 text-emerald-300 font-light">
-              <li><Link to="/track-order" className="hover:text-white">{t("footer.trackOrder")}</Link></li>
-              <li><button onClick={onConsultationClick} className="hover:text-white text-left">{t("footer.bookConsultation")}</button></li>
-              <li><Link to="/about" className="hover:text-white">{t("footer.aboutClinic")}</Link></li>
-              <li><Link to="/contact" className="hover:text-white">{t("footer.contactPage")}</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-3">{t("footer.addressLocation")}</h4>
-            <p className="text-emerald-350 leading-relaxed font-light">
-              {t("footer.clinicName")}<br />
-              {t("footer.addressLine1")}<br />
-              {t("footer.addressLine2")}
-            </p>
+          <div className="mt-4 md:mt-0 space-y-1">
+            <p className="text-emerald-200">Phone: +91 98765 43210</p>
+            <p className="text-emerald-200">Email: care@siddhahealthcare.in</p>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto text-center border-t border-emerald-900/50 mt-8 pt-4 text-[11px] text-emerald-400">
+        <div className="max-w-7xl mx-auto text-center border-t border-emerald-900/50 mt-6 pt-4 text-[11px] text-emerald-400">
           {t("footer.copyrightText")}
         </div>
       </footer>
