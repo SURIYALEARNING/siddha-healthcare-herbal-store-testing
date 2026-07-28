@@ -1,8 +1,8 @@
-import { LogOut, Database, LayoutDashboard, ShoppingBag, CalendarClock, TicketPercent, Users, Truck, FolderTree } from "lucide-react";
+import { LogOut, Database, LayoutDashboard, ShoppingBag, CalendarClock, TicketPercent, Users, Truck, FolderTree, Images } from "lucide-react";
 import { User } from "../../types";
 import TabButton from "./TabButton";
 
-export type TabId = "analytics" | "products" | "categories" | "orders" | "coupons" | "consultations" | "shipping";
+export type TabId = "analytics" | "products" | "categories" | "orders" | "coupons" | "consultations" | "shipping" | "carousel";
 
 interface AdminHeaderProps {
   user: User;
@@ -20,6 +20,7 @@ const TABS: { id: TabId; label: string; Icon: typeof LayoutDashboard }[] = [
   { id: "consultations", label: "Doctor Consults", Icon: Users },
   { id: "orders", label: "Live Orders", Icon: CalendarClock },
   { id: "shipping", label: "Shipping & Delivery", Icon: Truck },
+  { id: "carousel", label: "Promo Carousel", Icon: Images },
 ];
 
 export default function AdminHeader({ user, activeTab, onTabChange, onSignOut }: AdminHeaderProps) {

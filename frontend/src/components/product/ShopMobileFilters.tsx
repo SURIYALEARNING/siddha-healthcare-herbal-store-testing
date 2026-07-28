@@ -4,9 +4,6 @@ interface ShopMobileFiltersProps {
   categoryFilter: string;
   categories: string[];
   onCategoryChange: (cat: string) => void;
-  maxPrice: number;
-  priceRange: { min: number; max: number };
-  onPriceChange: (price: number) => void;
   onClose: () => void;
 }
 
@@ -14,9 +11,6 @@ export function ShopMobileFilters({
   categoryFilter,
   categories,
   onCategoryChange,
-  maxPrice,
-  priceRange,
-  onPriceChange,
   onClose,
 }: ShopMobileFiltersProps) {
   const { t } = useTranslation();
@@ -44,21 +38,6 @@ export function ShopMobileFilters({
           </div>
         </div>
 
-        <div>
-          <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold mb-1">
-            <span>{t('common.upperPriceLimit')}</span>
-            <span className="text-siddha-dark font-black">&#8377;{maxPrice}</span>
-          </div>
-          <input
-            type="range"
-            min={priceRange.min}
-            max={priceRange.max}
-            step="10"
-            value={maxPrice}
-            onChange={(e) => onPriceChange(Number(e.target.value))}
-            className="w-full accent-siddha-dark bg-slate-100 h-1.5 rounded-lg cursor-pointer"
-          />
-        </div>
       </div>
       <button
         onClick={onClose}

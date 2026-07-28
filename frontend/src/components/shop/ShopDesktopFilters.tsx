@@ -7,9 +7,6 @@ interface ShopDesktopFiltersProps {
   categoryFilter: string;
   categories: string[];
   onCategoryChange: (cat: string) => void;
-  maxPrice: number;
-  priceRange: { min: number; max: number };
-  onPriceChange: (price: number) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
 }
@@ -20,9 +17,6 @@ export function ShopDesktopFilters({
   categoryFilter,
   categories,
   onCategoryChange,
-  maxPrice,
-  priceRange,
-  onPriceChange,
   sortBy,
   onSortChange,
 }: ShopDesktopFiltersProps) {
@@ -59,26 +53,6 @@ export function ShopDesktopFilters({
               {categoryFilter === c && <span className="text-[10px] font-bold">&#10003;</span>}
             </button>
           ))}
-        </div>
-      </div>
-
-      <div className="space-y-2.5">
-        <div className="flex justify-between items-center text-xs text-gray-400 uppercase font-bold">
-          <span>{t('common.maxBudgetPrice')}</span>
-          <span className="text-siddha-dark font-black">{maxPrice === Infinity ? `Max` : `₹${maxPrice}`}</span>
-        </div>
-        <input
-          type="range"
-          min={priceRange.min}
-          max={priceRange.max}
-          step="10"
-          value={maxPrice}
-          onChange={(e) => onPriceChange(Number(e.target.value))}
-          className="w-full accent-siddha-dark bg-slate-100 h-1.5 rounded-lg cursor-pointer"
-        />
-        <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
-          <span>&#8377;{priceRange.min}</span>
-          <span>&#8377;{priceRange.max}</span>
         </div>
       </div>
 

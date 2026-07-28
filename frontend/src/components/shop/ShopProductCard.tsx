@@ -31,6 +31,7 @@ export const ShopProductCard = memo(function ShopProductCard({
   const reviews = p.latestReviews?.filter((r) => r.comment?.trim()) || [];
 
   const productName = getVal(p.name, lang);
+  const productMotto = getVal(p.productMotto, lang);
   const categoryName = typeof p.category === "object" && p.category
     ? getVal((p.category as any).name, lang)
     : (p.category as string);
@@ -96,6 +97,11 @@ export const ShopProductCard = memo(function ShopProductCard({
           {productName}
         </h3>
       </Link>
+      {productMotto && (
+        <p className="text-[11px] font-semibold text-emerald-700 italic leading-snug mt-0.5 lines-clamp-1">
+          {productMotto}
+        </p>
+      )}
       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">
         {categoryName}
       </p>
