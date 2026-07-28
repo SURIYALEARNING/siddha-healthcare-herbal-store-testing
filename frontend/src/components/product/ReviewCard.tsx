@@ -75,6 +75,15 @@ export function ReviewCard({ review, onHelpful, isOwn }: ReviewCardProps) {
           <span>{t('productDetails.helpful', { count: review.helpfulCount || 0 })}</span>
         </button>
       )}
+
+      {review.adminReply?.message && (
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mt-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Official Reply</span>
+          </div>
+          <p className="text-xs text-blue-900 leading-relaxed">{review.adminReply.message}</p>
+        </div>
+      )}
     </div>
   );
 }

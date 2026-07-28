@@ -44,8 +44,10 @@ function mapProductToForm(p: Product): ProductFormState {
     category: categoryId,
     price: p.price,
     discountPrice: p.discountPrice,
-    stock: p.stock,
     size: p.size || { value: 100, unit: 'ml' },
+    enableReminder: p.enableReminder !== false,
+    reminderDays: p.reminderDays || 30,
+    visibility: p.visibility || "PUBLIC",
     ingredients: mapTransArr(p.ingredients),
     benefits: mapTransArr(p.benefits),
     usageInstructions: mapTransArr(p.usageInstructions),
@@ -65,6 +67,7 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
   const { showSuccess, showError } = useToastContext();
 
   const [search, setSearch] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<"ALL" | "PUBLIC" | "UNLISTED">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -77,16 +80,22 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
   }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return products;
-    const q = search.toLowerCase();
-    return products.filter((p) => {
-      const name = getTransValue(p.name, lang).toLowerCase();
-      const catName = typeof p.category === 'object' && p.category
-        ? getTransValue((p.category as any).name, lang)
-        : (p.category as string);
-      return name.includes(q) || catName.toLowerCase().includes(q);
-    });
-  }, [products, search, lang]);
+    let list = products;
+    if (visibilityFilter !== "ALL") {
+      list = list.filter((p) => (p.visibility || "PUBLIC") === visibilityFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((p) => {
+        const name = getTransValue(p.name, lang).toLowerCase();
+        const catName = typeof p.category === 'object' && p.category
+          ? getTransValue((p.category as any).name, lang)
+          : (p.category as string);
+        return name.includes(q) || catName.toLowerCase().includes(q);
+      });
+    }
+    return list;
+  }, [products, search, lang, visibilityFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -135,8 +144,9 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
       category: form.category,
       price: Number(form.price),
       discountPrice: Number(form.discountPrice),
-      stock: Number(form.stock),
       size: form.size,
+      enableReminder: form.enableReminder,
+      reminderDays: Number(form.reminderDays),
       ingredients: mapToTrans(form.ingredients),
       benefits: mapToTrans(form.benefits),
       usageInstructions: mapToTrans(form.usageInstructions),
@@ -147,6 +157,7 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
       media: form.media,
       isFeatured: form.isFeatured,
       isActive: form.isActive,
+      visibility: form.visibility,
     };
 
     setSubmitting(true);
@@ -189,15 +200,26 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={`${t('common.search')}...`}
-          className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-siddha-dark focus:bg-white"
-        />
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`${t('common.search')}...`}
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-siddha-dark focus:bg-white"
+          />
+        </div>
+        <select
+          value={visibilityFilter}
+          onChange={(e) => setVisibilityFilter(e.target.value as "ALL" | "PUBLIC" | "UNLISTED")}
+          className="p-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium cursor-pointer"
+        >
+          <option value="ALL">All Visibility</option>
+          <option value="PUBLIC">Public</option>
+          <option value="UNLISTED">Unlisted</option>
+        </select>
       </div>
 
       <div className="overflow-x-auto">
@@ -209,7 +231,8 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
               <th className="py-3 pr-4">Name (TA)</th>
               <th className="py-3 pr-4">Category</th>
               <th className="py-3 pr-4">Price</th>
-              <th className="py-3 pr-4">Stock</th>
+              <th className="py-3 pr-4">Reminder</th>
+              <th className="py-3 pr-4">Visibility</th>
               <th className="py-3 pr-4">Featured</th>
               <th className="py-3 pr-4">Active</th>
               <th className="py-3 text-right">Actions</th>
@@ -248,9 +271,18 @@ export default function ProductsTab({ products, onAddProduct, onEditProduct, onD
                 </td>
                 <td className="py-3 pr-4">
                   <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                    p.stock <= 0 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+                    p.enableReminder ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'
                   }`}>
-                    {p.stock <= 0 ? 'Out' : p.stock}
+                    {p.enableReminder ? `${p.reminderDays || 30}d` : 'Off'}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                    (p.visibility || "PUBLIC") === "PUBLIC"
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-amber-50 text-amber-700'
+                  }`}>
+                    {p.visibility || "PUBLIC"}
                   </span>
                 </td>
                 <td className="py-3 pr-4">

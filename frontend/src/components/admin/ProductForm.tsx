@@ -14,7 +14,6 @@ export interface ProductFormState {
   category: string;
   price: number;
   discountPrice: number;
-  stock: number;
   size: { value: number; unit: 'mg' | 'g' | 'kg' | 'ml' | 'L' | 'capsule' | 'tablet' | 'pcs' };
   ingredients: { en: string; ta: string }[];
   benefits: { en: string; ta: string }[];
@@ -26,6 +25,9 @@ export interface ProductFormState {
   media: MediaItem[];
   isFeatured: boolean;
   isActive: boolean;
+  visibility: "PUBLIC" | "UNLISTED";
+  enableReminder: boolean;
+  reminderDays: number;
 }
 
 const emptyT = { en: "", ta: "" };
@@ -38,7 +40,6 @@ const RESET_FORM: ProductFormState = {
   category: "",
   price: 350,
   discountPrice: 280,
-  stock: 25,
   size: { value: 100, unit: "ml" },
   ingredients: [],
   benefits: [],
@@ -50,6 +51,9 @@ const RESET_FORM: ProductFormState = {
   media: [],
   isFeatured: false,
   isActive: true,
+  visibility: "PUBLIC",
+  enableReminder: true,
+  reminderDays: 30,
 };
 
 export const EMPTY_PRODUCT_FORM = RESET_FORM;
@@ -195,11 +199,12 @@ export default function ProductForm({ state, editingId, onChange, onSubmit, onCa
               ))}
             </select>
           </Field>
-          <Field label="Stock units" required>
+          <Field label="Reminder Days" required>
             <input
               type="number"
-              value={state.stock}
-              onChange={(e) => set({ stock: Number(e.target.value) })}
+              min={0}
+              value={state.reminderDays}
+              onChange={(e) => set({ reminderDays: Number(e.target.value) })}
               className="w-full p-2.5 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:bg-white font-mono"
             />
           </Field>
@@ -270,7 +275,7 @@ export default function ProductForm({ state, editingId, onChange, onSubmit, onCa
           required
         />
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4 items-center">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -289,6 +294,26 @@ export default function ProductForm({ state, editingId, onChange, onSubmit, onCa
             />
             <span className="text-sm font-medium text-gray-700">Active</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={state.enableReminder}
+              onChange={(e) => set({ enableReminder: e.target.checked })}
+              className="w-4 h-4 rounded border-gray-300 text-siddha-dark focus:ring-siddha-dark/20 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-700">Refill Reminder</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Visibility</label>
+            <select
+              value={state.visibility}
+              onChange={(e) => set({ visibility: e.target.value as "PUBLIC" | "UNLISTED" })}
+              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium cursor-pointer"
+            >
+              <option value="PUBLIC">Public</option>
+              <option value="UNLISTED">Unlisted</option>
+            </select>
+          </div>
         </div>
 
         <div className="pt-2 flex gap-2">

@@ -45,6 +45,11 @@ export default function OrdersTab({ orders, onUpdateStatus }: OrdersTabProps) {
                   {o.items.map((item, idx) => (
                     <p key={idx} className="truncate text-gray-500 leading-snug">
                       • {item.name} <span className="font-mono text-slate-805 text-[11px] font-black">x{item.quantity}</span>
+                      {item.batchAllocations?.map((ba) => (
+                        <span key={ba.batchId} className="ml-1 text-[10px] font-mono text-amber-700">
+                          [Batch: {ba.batchNumber || ba.batchId.slice(-6)}]
+                        </span>
+                      ))}
                     </p>
                   ))}
                 </div>

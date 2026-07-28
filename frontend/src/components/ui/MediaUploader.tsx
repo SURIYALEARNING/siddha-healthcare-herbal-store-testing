@@ -48,7 +48,7 @@ export default function MediaUploader({ media, onChange, maxFiles = 20 }: MediaU
       const results = await uploadMediaFiles(fileArray);
       onChange([...media, ...results]);
     } catch (err: any) {
-      const msg = err?.response?.data?.error || err.message || "Upload failed";
+      const msg = "Upload failed";
       setUploading((prev) =>
         prev.map((u) => (u.error ? u : { ...u, error: msg }))
       );
