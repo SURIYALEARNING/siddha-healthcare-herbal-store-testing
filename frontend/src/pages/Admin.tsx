@@ -43,8 +43,11 @@ export default function Admin() {
     fetchAllProductsApi({ limit: 200 }).then((data) => setAdminProducts(data.products || [])).catch(() => {});
   };
 
+  const isStaff = user?.role === "STAFF";
+  const isSuperAdminFromRole = user?.role === "SUPER_ADMIN";
+
   useEffect(() => {
-    if (!user || !user.isAdmin) {
+    if (!user || (!user.isAdmin && !isStaff && !isSuperAdminFromRole)) {
       navigate("/");
     }
   }, [user, navigate]);
@@ -57,12 +60,10 @@ export default function Admin() {
     }
   }, [activeTab, adminFetchConsultations]);
 
-  if (!user || !user.isAdmin) return null;
-
-  const isSuperAdmin = user.role === "SUPER_ADMIN";
+  if (!user || (!user.isAdmin && !isStaff && !isSuperAdminFromRole)) return null;
 
   const hasPermission = (tab: TabId): boolean => {
-    if (isSuperAdmin) return true;
+    if (isSuperAdminFromRole) return true;
     const permMap: Partial<Record<TabId, string>> = {
       analytics: "dashboard", products: "products", categories: "categories",
       orders: "orders", customers: "customers", batches: "batches",
@@ -117,7 +118,7 @@ export default function Admin() {
           )}
 
           {safeActiveTab === "orders" && (
-            <OrdersTab orders={orders} onUpdateStatus={adminUpdateOrderStatus} />
+            <OrdersTab />
           )}
 
           {safeActiveTab === "carousel" && (

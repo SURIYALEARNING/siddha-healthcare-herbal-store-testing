@@ -1,14 +1,20 @@
 import Order from '../models/Order.js';
 import Shipment from '../models/Shipment.js';
+import ShiprocketAuth from '../models/ShiprocketAuth.js';
 import { User } from '../models/User.js';
 import * as shiprocket from '../services/shiprocket.service.js';
 import { maybeCreateRemindersForOrder } from '../services/reminderService.js';
+import { addTimelineEvent, addShiprocketAssignedEvent, addShiprocketTrackingEvent } from '../services/timelineService.js';
+import { ORDER_STATUSES } from '../constants/orderStatus.js';
 
 export async function getShippingOrders(req, res) {
   try {
     const orders = await Order.find({
       paymentStatus: "Paid",
-      shippingStatus: { $ne: "CANCELLED" },
+      $or: [
+        { currentStatus: ORDER_STATUSES.PENDING },
+        { currentStatus: { $exists: false } },
+      ],
     }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -36,16 +42,35 @@ export async function getShippingStats(req, res) {
   }
 }
 
+export async function getPickupLocations(req, res) {
+  try {
+    const doc = await ShiprocketAuth.findOne().sort({ createdAt: -1 }).lean();
+    const locations = (doc?.pickupLocations || []).filter((l) => l.name);
+    res.json(locations.length > 0 ? locations : [{ name: process.env.SHIPROCKET_PICKUP_LOCATION || "primary", address: "", email: "", phone: "" }]);
+  } catch {
+    res.json([{ name: process.env.SHIPROCKET_PICKUP_LOCATION || "primary", address: "", email: "", phone: "" }]);
+  }
+}
+
 export async function confirmOrder(req, res) {
   try {
     const { orderId } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      orderId,
-      { $set: { shippingStatus: "CONFIRMED", status: "Shipped" } },
-      { new: true }
-    );
+    const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ error: "Order not found." });
-    res.json({ message: "Order confirmed for shipping!", order });
+
+    await addTimelineEvent({
+      orderId,
+      status: ORDER_STATUSES.CONFIRMED,
+      updatedBy: req.user?.id || "STAFF",
+      source: "STAFF",
+    });
+
+    await Order.findByIdAndUpdate(orderId, {
+      $set: { shippingStatus: "CONFIRMED", status: "Shipped", currentStatus: ORDER_STATUSES.CONFIRMED },
+    });
+
+    const updated = await Order.findById(orderId);
+    res.json({ message: "Order confirmed for shipping!", order: updated });
   } catch (error) {
     res.status(500).json({ error: "Failed to confirm order." });
   }
@@ -53,66 +78,93 @@ export async function confirmOrder(req, res) {
 
 export async function markPacked(req, res) {
   try {
-    const { orderId } = req.body;
-    const { length, breadth, height, weight } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      orderId,
-      { $set: { shippingStatus: "PACKED" } },
-      { new: true }
-    );
+    const { orderId, length, breadth, height, weight } = req.body;
+    const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ error: "Order not found." });
+
+    await addTimelineEvent({
+      orderId,
+      status: ORDER_STATUSES.PACKED,
+      updatedBy: req.user?.id || "STAFF",
+      source: "STAFF",
+    });
+
+    await Order.findByIdAndUpdate(orderId, {
+      $set: { shippingStatus: "PACKED", currentStatus: ORDER_STATUSES.PACKED },
+    });
+
     await Shipment.findOneAndUpdate(
       { orderId },
-      { $set: { "dimensions.length": length, "dimensions.breadth": breadth, "dimensions.height": height, weight } },
+      {
+        $set: {
+          "dimensions.length": length,
+          "dimensions.breadth": breadth,
+          "dimensions.height": height,
+          weight,
+        },
+      },
       { upsert: true }
     );
-    res.json({ message: "Order marked as packed!", order });
+
+    const updated = await Order.findById(orderId);
+    res.json({ message: "Order marked as packed!", order: updated });
   } catch (error) {
     res.status(500).json({ error: "Failed to mark packed." });
   }
 }
 
-export async function createShiprocketOrder(req, res) {
+export async function assignShiprocket(req, res) {
   try {
-    const { orderId } = req.body;
+    const { orderId, courier_type, comment, billing_address_2 } = req.body;
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ error: "Order not found." });
 
-    const firstItem = order.items[0];
+    const reg = (key, fallback) => req.body[key] !== undefined && req.body[key] !== "" ? req.body[key] : fallback;
+
     const payload = {
       order_id: order._id.toString(),
-      order_date: new Date(order.createdAt).toISOString().split("T")[0],
-      pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION || "primary",
-      billing_customer_name: order.fullName,
-      billing_last_name: "",
-      billing_address: order.shippingAddress.address,
-      billing_city: order.shippingAddress.district,
-      billing_pincode: order.shippingAddress.pincode,
-      billing_state: order.shippingAddress.state,
-      billing_country: "India",
-      billing_email: order.email,
-      billing_phone: order.mobileNumber,
+      order_date: reg("order_date", new Date(order.createdAt).toISOString().split("T")[0] + " 11:11"),
+      pickup_location: reg("pickup_location", process.env.SHIPROCKET_PICKUP_LOCATION || "primary"),
+      comment: reg("comment", ""),
+      billing_customer_name: reg("billing_customer_name", order.fullName),
+      billing_last_name: reg("billing_last_name", ""),
+      billing_address: reg("billing_address", order.shippingAddress.address),
+      billing_address_2: reg("billing_address_2", ""),
+      billing_city: reg("billing_city", order.shippingAddress.district),
+      billing_pincode: reg("billing_pincode", order.shippingAddress.pincode),
+      billing_state: reg("billing_state", order.shippingAddress.state),
+      billing_country: reg("billing_country", "India"),
+      billing_email: reg("billing_email", order.email),
+      billing_phone: reg("billing_phone", order.mobileNumber),
       shipping_is_billing: true,
       order_items: order.items.map(item => ({
         name: item.name,
         sku: item.productId?.toString() || "SKU001",
         units: item.quantity,
-        selling_price: item.price,
+        selling_price: item.purchasedPrice || item.itemTotal / item.quantity,
       })),
-      payment_method: order.paymentMethod === "Cash on Delivery" ? "COD" : "Prepaid",
-      sub_total: order.subtotal,
-      length: req.body.length || 10,
-      breadth: req.body.breadth || 10,
-      height: req.body.height || 10,
-      weight: req.body.weight || 0.5,
+      payment_method: reg("payment_method", order.paymentMethod === "Cash on Delivery" ? "COD" : "Prepaid"),
+      sub_total: reg("sub_total", order.subtotal),
+      length: reg("length", 10),
+      breadth: reg("breadth", 10),
+      height: reg("height", 10),
+      weight: reg("weight", 0.5),
     };
+
+    if (courier_type) payload.courier_type = courier_type;
 
     const srRes = await shiprocket.createOrder(payload);
     const srOrderId = srRes.order_id;
     const shipmentId = srRes.shipment_id;
 
     await Order.findByIdAndUpdate(orderId, {
-      $set: { shiprocketOrderId: srOrderId, shippingStatus: "CONFIRMED" },
+      $set: {
+        currentStatus: ORDER_STATUSES.CONFIRMED,
+        shippingMethod: "SHIPROCKET",
+        shiprocketOrderId: srOrderId,
+        "shiprocketDetails.shipmentId": shipmentId,
+        shippingStatus: "CONFIRMED",
+      },
     });
 
     await Shipment.findOneAndUpdate(
@@ -121,10 +173,16 @@ export async function createShiprocketOrder(req, res) {
       { upsert: true }
     );
 
+    await addShiprocketAssignedEvent(orderId, srOrderId);
+
     res.json({ message: "Shiprocket order created!", shiprocketOrderId: srOrderId, shipmentId });
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to create Shiprocket order." });
   }
+}
+
+export async function createShiprocketOrder(req, res) {
+  return assignShiprocket(req, res);
 }
 
 export async function generateAWB(req, res) {
@@ -135,8 +193,14 @@ export async function generateAWB(req, res) {
     const courierName = srRes.courier_name;
 
     await Order.findByIdAndUpdate(orderId, {
-      $set: { awbCode, courierName },
+      $set: {
+        awbCode,
+        courierName,
+        "tracking.awbNumber": awbCode,
+        "tracking.courierName": courierName,
+      },
     });
+
     await Shipment.findOneAndUpdate({ orderId }, {
       $set: { awbCode, courierName, trackingStatus: "AWB_GENERATED" },
     });
@@ -155,6 +219,7 @@ export async function requestPickup(req, res) {
     await Order.findByIdAndUpdate(orderId, {
       $set: { shippingStatus: "PICKUP_REQUESTED" },
     });
+
     await Shipment.findOneAndUpdate({ orderId }, {
       $set: { pickupStatus: "REQUESTED", trackingStatus: "PICKUP_REQUESTED" },
     });
@@ -178,15 +243,23 @@ export async function trackShipment(req, res) {
     if (tracking.status === "Delivered") {
       const shipment = await Shipment.findById(shipmentId);
       if (shipment) {
-        await Order.findByIdAndUpdate(shipment.orderId, {
-          $set: { shippingStatus: "DELIVERED", status: "Delivered" },
-        });
-        await Shipment.findByIdAndUpdate(shipmentId, {
-          $set: { deliveredAt: new Date() },
-        });
-        maybeCreateRemindersForOrder(shipment.orderId).catch((err) =>
-          console.error("Failed to create delivery reminders:", err)
-        );
+        const currentOrder = await Order.findById(shipment.orderId);
+        if (currentOrder && currentOrder.currentStatus !== ORDER_STATUSES.DELIVERED) {
+          await addShiprocketTrackingEvent(shipment.orderId, "DELIVERED", tracking);
+          await Order.findByIdAndUpdate(shipment.orderId, {
+            $set: {
+              shippingStatus: "DELIVERED",
+              status: "Delivered",
+              "tracking.deliveredAt": new Date(),
+            },
+          });
+          await Shipment.findByIdAndUpdate(shipmentId, {
+            $set: { deliveredAt: new Date() },
+          });
+          maybeCreateRemindersForOrder(shipment.orderId).catch((err) =>
+            console.error("Failed to create delivery reminders:", err)
+          );
+        }
       }
     }
 
@@ -200,6 +273,13 @@ export async function cancelShipment(req, res) {
   try {
     const { orderId, shipmentIds } = req.body;
     await shiprocket.cancelShipment(shipmentIds);
+
+    await addTimelineEvent({
+      orderId,
+      status: ORDER_STATUSES.CANCELLED,
+      updatedBy: req.user?.id || "STAFF",
+      source: "STAFF",
+    });
 
     await Order.findByIdAndUpdate(orderId, {
       $set: { shippingStatus: "CANCELLED", status: "Cancelled" },

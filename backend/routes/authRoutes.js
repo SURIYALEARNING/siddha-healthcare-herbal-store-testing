@@ -112,7 +112,7 @@ router.post(
         email: user.email,
         mobileNumber: user.mobileNumber,
         isAdmin: user.isAdmin,
-        role: user.role || "STAFF",
+        role: user.role,
         isActive: user.isActive !== false,
         permissions: user.permissions || {},
         address: user.address // This will send empty fields if not updated yet
@@ -123,7 +123,7 @@ router.post(
 
       // 3. Generate Tokens (Payload la role based authorization-ku 'isAdmin' add panrom)
       const accessToken = jwt.sign(
-        { id: user.id, isAdmin: user.isAdmin, role: user.role || "STAFF" },
+        { id: user.id, isAdmin: user.isAdmin, role: user.role },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '59m' }
       );
@@ -177,14 +177,14 @@ router.get(
       email: user.email,
       mobileNumber: user.mobileNumber,
       isAdmin: user.isAdmin,
-      role: user.role || "STAFF",
+      role: user.role,
       isActive: user.isActive !== false,
       permissions: user.permissions || {},
       address: user.address,
     };
 
     const accessToken = jwt.sign(
-      { id: user.id, isAdmin: user.isAdmin, role: user.role || "STAFF" },
+      { id: user.id, isAdmin: user.isAdmin, role: user.role },
       ACCESS_TOKEN_SECRET,
       { expiresIn: '59m' }
     );
@@ -243,7 +243,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { id: user._id.toString(), isAdmin: user.isAdmin, role: user.role || "STAFF" },
+      { id: user._id.toString(), isAdmin: user.isAdmin, role: user.role },
       ACCESS_TOKEN_SECRET,
       { expiresIn: '59m' }
     );
@@ -267,7 +267,7 @@ router.post('/refresh', async (req, res) => {
       email: user.email,
       mobileNumber: user.mobileNumber,
       isAdmin: user.isAdmin,
-      role: user.role || "STAFF",
+      role: user.role,
       isActive: user.isActive !== false,
       permissions: user.permissions || {},
       address: user.address,
@@ -320,7 +320,7 @@ router.put('/update-profile/:userId', async (req, res) => {
       email: updatedUser.email,
       mobileNumber: updatedUser.mobileNumber,
       isAdmin: updatedUser.isAdmin,
-      role: updatedUser.role || "STAFF",
+      role: updatedUser.role,
       isActive: updatedUser.isActive !== false,
       permissions: updatedUser.permissions || {},
       address: updatedUser.address,

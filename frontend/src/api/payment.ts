@@ -25,9 +25,12 @@ export const fetchRazorpayConfigApi = async (): Promise<ConfigResponse> => {
   }
 };
 
-export const createRazorpayOrderApi = async (amount: number): Promise<CreateOrderResponse> => {
+export const createRazorpayOrderApi = async (payload: {
+  items: { productId: string; quantity: number }[];
+  couponCode?: string;
+}): Promise<CreateOrderResponse> => {
   try {
-    const res = await client.post("/api/payment/create-order", { amount });
+    const res = await client.post("/api/payment/create-order", payload);
     return res.data;
   } catch (error) {
     handleApiError("createRazorpayOrderApi", error);

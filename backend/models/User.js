@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
   mobileNumber: { type: String, default: "" },
   password: { type: String, required: true },
   isAdmin: { type: Boolean, default: false },
-  role: { type: String, enum: ["SUPER_ADMIN", "STAFF"], default: "STAFF" },
+  role: { type: String, default: "USER" },
   isActive: { type: Boolean, default: true },
   permissions: { type: mongoose.Schema.Types.Mixed, default: { ...DEFAULT_PERMISSIONS } },
   lastLogin: { type: Date },

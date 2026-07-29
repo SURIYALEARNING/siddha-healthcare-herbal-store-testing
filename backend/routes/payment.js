@@ -2,6 +2,7 @@ import express from "express";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { verifyToken } from "../Auth/authMiddleware.js";
+import { calculateOrder } from "../services/orderCalculationService.js";
 
 const router = express.Router();
 
@@ -11,15 +12,20 @@ router.get("/config", (req, res) => {
 
 router.post("/create-order", verifyToken, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { items, couponCode } = req.body;
+    if (!items?.length) {
+      return res.status(400).json({ error: "Items are required to calculate payment." });
+    }
+
+    const calculated = await calculateOrder({ items, couponCode });
+
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    
     const options = {
-      amount: Math.round(amount * 100),
+      amount: Math.round(calculated.total * 100),
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
@@ -27,7 +33,7 @@ router.post("/create-order", verifyToken, async (req, res) => {
     res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
   } catch (error) {
     console.error("Razorpay order creation failed:", error);
-    res.status(500).json({ error: "Failed to create payment order" });
+    res.status(500).json({ error: error.message || "Failed to create payment order" });
   }
 });
 

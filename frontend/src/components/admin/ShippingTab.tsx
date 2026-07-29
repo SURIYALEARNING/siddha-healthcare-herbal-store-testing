@@ -46,9 +46,9 @@ export default function ShippingTab() {
     showSuccess("Confirmed", "Order confirmed for shipping.");
   };
 
-  const handleCreateShiprocketOrder = async (orderId: string): Promise<string | null> => {
+  const handleCreateShiprocketOrder = async (orderId: string, formData?: Record<string, any>): Promise<string | null> => {
     try {
-      const res = await createShiprocketOrderApi(orderId);
+      const res = await createShiprocketOrderApi(orderId, formData);
       showSuccess("Shiprocket", "Shiprocket order created.");
       await loadData();
       return res.shipmentId;

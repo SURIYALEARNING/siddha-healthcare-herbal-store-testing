@@ -1,17 +1,15 @@
 import client from "./client";
-import { Order, Address } from "../types";
+import { Order, Address, PaginatedOrders, OrderStats, TimelineEvent } from "../types";
 import { handleApiError } from "./errors";
 
 export interface CheckoutPayload {
-  items: { productId: string; name: string; price: number; quantity: number; image: string }[];
-  subtotal: number;
-  couponDiscount: number;
-  total: number;
+  items: { productId: string; quantity: number }[];
   shippingAddress: Address;
   mobileNumber: string;
   email: string;
   fullName: string;
   paymentMethod: string;
+  couponCode?: string;
   razorpayPaymentId?: string;
 }
 
@@ -49,20 +47,98 @@ export const trackOrderApi = async (orderId: string): Promise<Order> => {
 export const adminFetchOrdersApi = async (): Promise<Order[]> => {
   try {
     const res = await client.get("/api/admin/orders");
-    return res.data;
+    return res.data?.orders || res.data;
   } catch (error) {
     handleApiError("adminFetchOrdersApi", error);
+  }
+};
+
+export const getAdminOrdersApi = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  paymentStatus?: string;
+  shippingMethod?: string;
+  search?: string;
+  period?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  userId?: string;
+}): Promise<PaginatedOrders> => {
+  try {
+    const res = await client.get("/api/admin/orders", { params });
+    return res.data;
+  } catch (error) {
+    handleApiError("getAdminOrdersApi", error);
+  }
+};
+
+export const getAdminOrderByIdApi = async (id: string): Promise<Order> => {
+  try {
+    const res = await client.get(`/api/admin/orders/${id}`);
+    return res.data;
+  } catch (error) {
+    handleApiError("getAdminOrderByIdApi", error);
+  }
+};
+
+export const getOrderTimelineApi = async (id: string): Promise<{ timeline: TimelineEvent[]; currentStatus: string }> => {
+  try {
+    const res = await client.get(`/api/admin/orders/${id}/timeline`);
+    return res.data;
+  } catch (error) {
+    handleApiError("getOrderTimelineApi", error);
+  }
+};
+
+export const getOrderStatsApi = async (): Promise<OrderStats> => {
+  try {
+    const res = await client.get("/api/admin/orders/stats");
+    return res.data;
+  } catch (error) {
+    handleApiError("getOrderStatsApi", error);
   }
 };
 
 export const adminUpdateOrderStatusApi = async (
   orderId: string,
   status: string,
-  paymentStatus?: string
+  paymentStatus?: string,
+  description?: string
 ): Promise<void> => {
   try {
-    await client.put(`/api/admin/orders/${orderId}/status`, { status, paymentStatus });
+    await client.put(`/api/admin/orders/${orderId}/status`, { status, paymentStatus, description });
   } catch (error) {
     handleApiError("adminUpdateOrderStatusApi", error);
+  }
+};
+
+export const updateManualShippingStatusApi = async (
+  orderId: string,
+  status: string,
+  description?: string
+): Promise<void> => {
+  try {
+    await client.put(`/api/admin/orders/${orderId}/shipping-status`, { status, description });
+  } catch (error) {
+    handleApiError("updateManualShippingStatusApi", error);
+  }
+};
+
+export const getCustomersListApi = async (): Promise<any[]> => {
+  try {
+    const res = await client.get("/api/admin/customers");
+    return res.data;
+  } catch (error) {
+    handleApiError("getCustomersListApi", error);
+  }
+};
+
+export const getCustomerOrdersApi = async (userId: string, status?: string): Promise<{ customer: any; orders: Order[] }> => {
+  try {
+    const res = await client.get(`/api/admin/customers/${userId}/orders`, { params: { status } });
+    return res.data;
+  } catch (error) {
+    handleApiError("getCustomerOrdersApi", error);
   }
 };

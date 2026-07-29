@@ -1,254 +1,260 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { Search, Loader2, CheckCircle2, Truck, Clock, PackageCheck, Package, ShoppingBag, ShieldCheck } from "lucide-react";
+import { trackOrderApi } from "../api";
+import { Package, Truck, CheckCircle, Clock, MapPin, ChevronLeft, CreditCard, DollarSign } from "lucide-react";
+import type { Order, TimelineEvent } from "../types";
+
+const STATUS_STEPS = [
+  { key: "Pending", label: "Order Placed", icon: Clock },
+  { key: "Payment Successful", label: "Payment Successful", icon: DollarSign },
+  { key: "Confirmed", label: "Confirmed", icon: CheckCircle },
+  { key: "Packed", label: "Packed", icon: Package },
+  { key: "Ready To Ship", label: "Ready To Ship", icon: Package },
+  { key: "Shipped", label: "Shipped", icon: Truck },
+  { key: "Out For Delivery", label: "Out For Delivery", icon: Truck },
+  { key: "Delivered", label: "Delivered", icon: CheckCircle },
+];
+
+const FULFILLMENT_ORDER = [
+  "Pending", "Confirmed", "Packed", "Ready To Ship",
+  "Shipped", "Out For Delivery", "Delivered",
+];
+
+function getCurrentStepIndex(currentStatus: string): number {
+  const idx = FULFILLMENT_ORDER.indexOf(currentStatus);
+  return idx >= 0 ? idx : 0;
+}
 
 export default function TrackOrder() {
   const { orders } = useApp();
   const location = useLocation();
+  const justPlacedId = (location.state as any)?.justPlacedId;
+  const searchId = (location.state as any)?.searchId;
+  const [order, setOrder] = useState<Order & { trackingHistory?: any[] } | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [lookupId, setLookupId] = useState("");
+  const [manualLookup, setManualLookup] = useState(false);
 
-  const [searchIdInput, setSearchIdInput] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  // Check state transfers from checkout or account dashboard
   useEffect(() => {
-    const state = location.state as { justPlacedId?: string; searchId?: string } | null;
-    let targetId = "";
-    if (state?.justPlacedId) {
-      targetId = state.justPlacedId;
-    } else if (state?.searchId) {
-      targetId = state.searchId;
-    }
+    const id = justPlacedId || searchId;
+    if (!id && !manualLookup) return;
 
-    if (targetId) {
-      setSearchIdInput(targetId);
-      const matched = orders.find(o => o.id === targetId);
-      if (matched) {
-        setSelectedOrder(matched);
-      } else {
-        // Fallback search local storage or remote
-        fetchOrderRemote(targetId);
+    const fetchOrder = async (oid: string) => {
+      try {
+        const localOrder = orders.find((o) => o.id === oid) as any;
+        if (localOrder) {
+          setOrder(localOrder);
+          return;
+        }
+        const data = await trackOrderApi(oid) as any;
+        setOrder(data);
+      } catch {
+        setNotFound(true);
       }
-    }
-  }, [location, orders]);
+    };
 
-  const fetchOrderRemote = async (oid: string) => {
-    try {
-      setErrorMsg("");
-      const res = await fetch(`/api/orders/${oid}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedOrder(data);
-      } else {
-        setErrorMsg("Could not find order with reference ID. Verify characters.");
-        setSelectedOrder(null);
-      }
-    } catch (err) {
-      setErrorMsg("Network failure query order reference. Check backend connectivity.");
-      setSelectedOrder(null);
+    if (id) {
+      fetchOrder(id);
     }
-  };
+  }, [justPlacedId, searchId, orders, manualLookup]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchIdInput.trim()) return;
-
-    // Search local list first
-    const localMatched = orders.find(o => o.id === searchIdInput.trim());
-    if (localMatched) {
-      setErrorMsg("");
-      setSelectedOrder(localMatched);
-    } else {
-      fetchOrderRemote(searchIdInput.trim());
+    if (!lookupId.trim()) return;
+    setNotFound(false);
+    try {
+      const data = await trackOrderApi(lookupId.trim()) as any;
+      setOrder(data);
+      setManualLookup(true);
+    } catch {
+      setOrder(null);
+      setNotFound(true);
     }
   };
 
-  // Steps define
-  const steps = [
-    { label: "Ordered & Confirmed", status: "Ordered", icon: ShoppingBag, color: "text-blue-600 bg-blue-50 border-blue-200" },
-    { label: "Packed in Organic Bags", status: "Packed", icon: PackageCheck, color: "text-cyan-600 bg-cyan-50 border-cyan-200" },
-    { label: "Handed to Ayush Carrier", status: "Shipped", icon: Truck, color: "text-purple-600 bg-purple-50 border-purple-200" },
-    { label: "Out for Local Delivery", status: "Out for Delivery", icon: Package, color: "text-amber-600 bg-amber-50 border-amber-200" },
-    { label: "Delivered Healthy", status: "Delivered", icon: CheckCircle2, color: "text-emerald-700 bg-emerald-50 border-emerald-200" }
-  ];
+  if (!order && !notFound) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <div className="w-10 h-10 border-2 border-siddha-dark border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-gray-400 mt-4">Loading tracking information...</p>
+      </div>
+    );
+  }
 
-  // Resolve active index
-  const getActiveStepIndex = (statusStr: string) => {
-    const index = steps.findIndex(s => s.status.toLowerCase() === statusStr.toLowerCase());
-    return index !== -1 ? index : 0;
-  };
-
-  const activeIndex = selectedOrder ? getActiveStepIndex(selectedOrder.status) : -1;
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      
-      {/* Search Header card */}
-      <div className="bg-white rounded-3xl border border-gray-150 p-6 sm:p-10 space-y-4 shadow-xs text-center">
-        <h1 className="text-3xl font-bold font-display text-emerald-950 tracking-tight leading-none">
-          Live Logistics Courier Tracker
-        </h1>
-        <p className="text-xs text-slate-450 font-semibold uppercase tracking-wider max-w-lg mx-auto leading-normal">
-          Track clinical formulations shipped from Ayush Pharmacy warehouse straight to your hands
-        </p>
-
-        <form onSubmit={handleSearchSubmit} className="max-w-md mx-auto pt-3 flex gap-1.5 flex-col sm:flex-row">
-          <input 
+  if (notFound && !order) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16">
+        <h2 className="text-lg font-bold text-emerald-950 mb-4">Track Your Order</h2>
+        <form onSubmit={handleLookup} className="flex gap-2 mb-4">
+          <input
             type="text"
-            placeholder="Ex. ORD-94825"
-            value={searchIdInput}
-            onChange={(e) => setSearchIdInput(e.target.value)}
-            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-150 focus:border-siddha-dark focus:bg-white focus:outline-none rounded-xl text-xs sm:text-sm font-semibold tracking-widest text-center uppercase text-gray-850"
-            required
+            value={lookupId}
+            onChange={(e) => setLookupId(e.target.value)}
+            placeholder="Enter Order ID"
+            className="flex-1 px-4 py-2.5 border border-gray-150 rounded-xl text-xs font-medium focus:outline-none focus:border-siddha-dark"
           />
-          <button 
-            type="submit"
-            className="px-6 py-3 bg-siddha-dark hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1 shrink-0"
-          >
-            <Search className="w-4 h-4 text-siddha-gold" />
-            <span>Track Order</span>
+          <button type="submit" className="px-4 py-2.5 bg-siddha-dark text-white rounded-xl text-xs font-bold cursor-pointer">
+            Track
           </button>
         </form>
-
-        {errorMsg && (
-          <p className="text-xs font-bold text-rose-650 bg-rose-50 border border-rose-100 p-2.5 rounded-xl max-w-md mx-auto">
-            ⚠ {errorMsg}
-          </p>
-        )}
+        <p className="text-xs text-rose-600 font-bold text-center">Order not found. Please check the ID and try again.</p>
       </div>
+    );
+  }
 
-      {/* TRACKING TIMELINE DISPLAY SCREEN */}
-      {selectedOrder ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 space-y-8 shadow-xs">
-          
-          {/* Order Brief */}
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-            <div>
-              <span className="text-[10px] uppercase font-black text-gray-400">Order ID:</span>
-              <p className="text-base font-black text-siddha-dark font-mono mt-0.5 leading-none">{selectedOrder.id}</p>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-black text-gray-400">Placed Date:</span>
-              <p className="text-xs text-gray-650 font-bold mt-1 leading-none">
-                {new Date(selectedOrder.date).toLocaleDateString()}
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-black text-gray-400">Paid Amount:</span>
-              <p className="text-base font-black text-gray-800 font-mono mt-0.5 leading-none">₹{selectedOrder.total}</p>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-black text-gray-400 font-mono">Status Indicator:</span>
-              <span className="block mt-1 text-[9px] font-bold uppercase bg-siddha-light text-siddha-dark px-2.5 py-0.5 rounded border border-emerald-250 leading-none">
-                {selectedOrder.status}
-              </span>
-            </div>
+  const currentStatus = order!.currentStatus || order!.status || "Pending";
+  const currentStep = getCurrentStepIndex(currentStatus);
+  const timeline = order!.timeline || [];
+  const trackingHistory = (order as any).trackingHistory || [];
+
+  const allShippingSnapshots = trackingHistory.map((h: any, i: number) => ({
+    title: h.status || "Update",
+    description: h.activity || h.location || "",
+    createdAt: h.date || h.timestamp || new Date().toISOString(),
+    source: "SHIPROCKET",
+  }));
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <Link to="/account" className="inline-flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-siddha-dark uppercase tracking-wider cursor-pointer">
+        <ChevronLeft className="w-4 h-4" />
+        Back to Account
+      </Link>
+
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-4 border-b border-gray-50">
+          <div>
+            <h2 className="text-lg font-bold font-display text-emerald-950">Track Order</h2>
+            <p className="text-[10px] font-mono text-gray-400 mt-0.5">#{order!.id || order!._id}</p>
           </div>
-
-          {/* Stepper Timeline Graphics */}
-          <div className="space-y-6 pt-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Logistics Process Progress</h3>
-            
-            <div className="relative pl-8 sm:pl-0 sm:grid sm:grid-cols-5 gap-4">
-              
-              {/* Desktop connected trace line */}
-              <div className="hidden sm:block absolute top-5 left-1/10 right-1/10 h-0.5 bg-gray-100 z-0">
-                <div 
-                  className="h-full bg-siddha-dark transition-all duration-500"
-                  style={{ width: `${(activeIndex / (steps.length - 1)) * 100}%` }}
-                ></div>
-              </div>
-
-              {/* Mobile connected line */}
-              <div className="sm:hidden absolute top-4 bottom-4 left-3.5 w-0.5 bg-gray-100 z-0">
-                <div 
-                  className="w-full bg-siddha-dark transition-all duration-500"
-                  style={{ height: `${(activeIndex / (steps.length - 1)) * 100}%` }}
-                ></div>
-              </div>
-
-              {steps.map((step, idx) => {
-                const isCompleted = idx <= activeIndex;
-                const isCurrent = idx === activeIndex;
-                const IconComp = step.icon;
-
-                return (
-                  <div 
-                    key={step.status} 
-                    className={`relative z-10 flex sm:flex-col items-start sm:items-center text-left sm:text-center sm:space-y-2 mb-6 sm:mb-0`}
-                  >
-                    
-                    {/* Circle icon marker */}
-                    <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                      isCompleted 
-                        ? "bg-siddha-dark text-white border-siddha-dark shadow-md" 
-                        : "bg-white text-gray-300 border-gray-200"
-                    } ${isCurrent ? "ring-4 ring-emerald-100 scale-105" : ""}`}>
-                      <IconComp className="w-4 h-4" />
-                    </div>
-
-                    {/* text contents */}
-                    <div className="pl-4 sm:pl-0">
-                      <h4 className={`text-xs font-bold tracking-tight ${isCompleted ? "text-emerald-950" : "text-gray-400"}`}>
-                        {step.label}
-                      </h4>
-                      <p className={`text-[10px] font-medium leading-none mt-1 uppercase ${
-                        isCurrent ? "text-emerald-700" : isCompleted ? "text-gray-500" : "text-gray-300"
-                      }`}>
-                        {isSelectedOrder(step.status, selectedOrder.status) ? "In Transit" : isCompleted ? "Complete" : "Pending"}
-                      </p>
-                    </div>
-
-                  </div>
-                );
-              })}
-
-            </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className={`font-bold px-3 py-1 rounded-full ${
+              order!.paymentStatus === "Paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+            }`}>
+              {order!.paymentStatus}
+            </span>
+            <span className="text-gray-400">
+              ₹{order!.total}
+            </span>
           </div>
+        </div>
 
-          {/* Delivery Location address card */}
-          <div className="border-t border-gray-50 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Delivery Destination</h4>
-              <p className="text-xs font-bold text-gray-700 leading-none">{selectedOrder.fullName}</p>
-              <p className="text-xs text-gray-500 leading-normal">
-                {selectedOrder.shippingAddress.address}<br />
-                {selectedOrder.shippingAddress.district}, {selectedOrder.shippingAddress.state} - {selectedOrder.shippingAddress.pincode}
-              </p>
-              <p className="text-[11px] text-gray-400 font-mono">Contact phone: {selectedOrder.mobileNumber}</p>
-            </div>
-
-            <div className="space-y-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded font-mono uppercase">
-                  Logistics Carrier Info
-                </span>
-                <p className="text-xs text-gray-500 mt-2">
-                  Carrier partner: Professional Couriers (Tamil Nadu Delivery Networks)<br />
-                  Tracking air waybill (AWB): <strong>AYUSH-ST-{selectedOrder.id.substring(4)}</strong>
+        <div className="hidden sm:flex items-center justify-between">
+          {STATUS_STEPS.map((step, idx) => {
+            const isCompleted = idx < currentStep;
+            const isCurrent = idx === currentStep;
+            const stepKey = step.key;
+            const show = currentStep > 0 || idx <= 1;
+            if (!show && idx > 1) return null;
+            return (
+              <div key={stepKey} className="flex flex-col items-center flex-1 relative">
+                {idx > 0 && (
+                  <div className={`absolute top-3 right-1/2 w-full h-0.5 -z-10 ${
+                    isCompleted || isCurrent ? "bg-emerald-500" : "bg-gray-200"
+                  }`} />
+                )}
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                  isCompleted ? "bg-emerald-500 text-white" :
+                  isCurrent ? "bg-siddha-dark text-siddha-gold ring-2 ring-siddha-gold" :
+                  "bg-gray-100 text-gray-400"
+                }`}>
+                  {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : <step.icon className="w-3.5 h-3.5" />}
+                </div>
+                <p className={`text-[9px] font-bold uppercase mt-1.5 text-center leading-tight ${
+                  isCompleted || isCurrent ? "text-gray-800" : "text-gray-400"
+                }`}>
+                  {step.label}
                 </p>
               </div>
-              <div className="flex items-center space-x-1 text-[11px] text-emerald-700 font-bold uppercase tracking-wider leading-none">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Ministry of AYUSH secure logistics</span>
+            );
+          })}
+        </div>
+
+        <div className="sm:hidden space-y-3">
+          {STATUS_STEPS.filter((_, idx) => currentStep > 0 || idx <= 1).slice(0, currentStep + 1).map((step, idx) => {
+            const isCompleted = idx < currentStep;
+            const isCurrent = idx === currentStep;
+            return (
+              <div key={step.key} className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  isCompleted ? "bg-emerald-500 text-white" :
+                  isCurrent ? "bg-siddha-dark text-siddha-gold ring-2 ring-siddha-gold" :
+                  "bg-gray-100 text-gray-400"
+                }`}>
+                  {isCompleted ? <CheckCircle className="w-3 h-3" /> : <step.icon className="w-3 h-3" />}
+                </div>
+                <p className={`text-xs font-bold ${isCompleted || isCurrent ? "text-gray-800" : "text-gray-400"}`}>
+                  {step.label}
+                </p>
               </div>
+            );
+          })}
+        </div>
+
+        {order!.tracking?.courierName && (
+          <div className="bg-gray-50 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {order!.tracking.courierName && (
+              <div><p className="text-[9px] font-bold text-gray-400 uppercase">Courier</p><p className="font-bold mt-0.5">{order!.tracking.courierName}</p></div>
+            )}
+            {order!.tracking.awbNumber && (
+              <div><p className="text-[9px] font-bold text-gray-400 uppercase">Tracking No.</p><p className="font-mono font-bold mt-0.5">{order!.tracking.awbNumber}</p></div>
+            )}
+            {order!.tracking.estimatedDelivery && (
+              <div><p className="text-[9px] font-bold text-gray-400 uppercase">Est. Delivery</p><p className="font-bold mt-0.5">{new Date(order!.tracking.estimatedDelivery).toLocaleDateString()}</p></div>
+            )}
+            {order!.createdAt && (
+              <div><p className="text-[9px] font-bold text-gray-400 uppercase">Ordered</p><p className="font-bold mt-0.5">{new Date(order!.createdAt).toLocaleDateString()}</p></div>
+            )}
+          </div>
+        )}
+
+        {(timeline.length > 0 || allShippingSnapshots.length > 0) && (
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-4">Timeline</h3>
+            <div className="relative pl-6 space-y-0">
+              {[...timeline, ...allShippingSnapshots]
+                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                .map((event, idx, arr) => (
+                <div key={idx} className="relative pb-5 last:pb-0">
+                  {idx < arr.length - 1 && (
+                    <div className="absolute left-[-14px] top-3 bottom-0 w-0.5 bg-emerald-200" />
+                  )}
+                  <div className={`absolute left-[-18px] top-1.5 w-3 h-3 rounded-full border-2 ${
+                    idx === arr.length - 1 ? "bg-emerald-500 border-emerald-500" : "bg-white border-emerald-400"
+                  }`} />
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-800">{event.title || event.status}</p>
+                      {event.description && <p className="text-[10px] text-gray-400 mt-0.5">{event.description}</p>}
+                      <p className="text-[9px] text-gray-400 mt-0.5">{new Date(event.createdAt).toLocaleString()}</p>
+                    </div>
+                    {(event as any).source && (
+                      <span className={`shrink-0 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full ${
+                        (event as any).source === "SHIPROCKET" ? "bg-purple-50 text-purple-700" :
+                        (event as any).source === "STAFF" ? "bg-blue-50 text-blue-700" :
+                        (event as any).source === "SYSTEM" ? "bg-gray-50 text-gray-500" :
+                        "bg-gray-50 text-gray-400"
+                      }`}>
+                        {(event as any).source}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+        )}
 
+        <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipping Address</h4>
+          <p className="text-xs font-bold">{order!.fullName}</p>
+          <p className="text-xs text-gray-500">{order!.mobileNumber}</p>
+          <p className="text-xs text-gray-500">
+            {order!.shippingAddress.address}, {order!.shippingAddress.district}, {order!.shippingAddress.state} - {order!.shippingAddress.pincode}
+          </p>
         </div>
-      ) : (
-        <div className="text-center py-10 bg-white border border-gray-100 rounded-3xl p-6 shadow-xs max-w-sm mx-auto space-y-2.5">
-          <Clock className="w-10 h-10 text-gray-300 mx-auto" />
-          <h4 className="font-bold text-emerald-950 text-sm">Waiting for order reference ID</h4>
-          <p className="text-xs text-gray-400 leading-normal font-light">Enter an order ID in the search bar above to see historical live courier transitions.</p>
-        </div>
-      )}
-
+      </div>
     </div>
   );
-}
-
-function isSelectedOrder(stepStatus: string, orderStatus: string) {
-  return stepStatus.toLowerCase() === orderStatus.toLowerCase();
 }

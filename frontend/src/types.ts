@@ -175,6 +175,8 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image: string;
+  purchasedPrice?: number;
+  itemTotal?: number;
   batchAllocations?: BatchAllocation[];
 }
 
@@ -183,17 +185,56 @@ export type ShippingStatus =
   | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY"
   | "DELIVERED" | "RETURNED" | "CANCELLED";
 
+export type ShippingMethod = "SHIPROCKET" | "MANUAL";
+
+export type OrderFulfillmentStatus =
+  | "Pending" | "Confirmed" | "Packed" | "Ready To Ship"
+  | "Shipped" | "Out For Delivery" | "Delivered"
+  | "Cancelled" | "Returned" | "Refunded";
+
+export interface TimelineEvent {
+  status: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  updatedBy: string;
+  source: "SYSTEM" | "STAFF" | "SHIPROCKET";
+}
+
+export interface TrackingInfo {
+  courierName?: string;
+  awbNumber?: string;
+  trackingUrl?: string;
+  estimatedDelivery?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+}
+
+export interface ShiprocketDetails {
+  shipmentId?: string;
+  pickupId?: string;
+  pickupStatus?: string;
+}
+
 export interface Order {
   id: string;
+  _id?: string;
   userId: string;
   items: OrderItem[];
   subtotal: number;
   couponDiscount: number;
+  deliveryCharges?: number;
   total: number;
+  appliedCouponCode?: string;
   shippingAddress: Address;
   mobileNumber: string;
   email: string;
   fullName: string;
+  shippingMethod?: ShippingMethod;
+  currentStatus?: OrderFulfillmentStatus;
+  timeline?: TimelineEvent[];
+  tracking?: TrackingInfo;
+  shiprocketDetails?: ShiprocketDetails;
   status: 'Ordered' | 'Packed' | 'Shipped' | 'Out for Delivery' | 'Delivered';
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending';
@@ -205,6 +246,18 @@ export interface Order {
   awbCode?: string;
   courierName?: string;
   trackingLink?: string;
+}
+
+export interface OrderStats {
+  today: number;
+  [key: string]: number;
+}
+
+export interface PaginatedOrders {
+  orders: Order[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface Shipment {
@@ -356,7 +409,7 @@ export interface User {
   mobileNumber: string;
   address?: Address;
   isAdmin?: boolean;
-  role?: "SUPER_ADMIN" | "STAFF";
+  role?: "SUPER_ADMIN" | "STAFF" | "USER";
   isActive?: boolean;
   permissions?: Permissions;
   lastLogin?: string;

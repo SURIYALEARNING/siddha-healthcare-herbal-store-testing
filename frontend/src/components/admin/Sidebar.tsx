@@ -37,7 +37,7 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }: Sid
     if (!tab.permission) return false;
     return user.permissions?.[tab.permission] === true;
   });
-  const [pinned, setPinned] = useState(false);
+  const [pinned, setPinned] = useState(true);
   const [hovered, setHovered] = useState(false);
 
   const expanded = pinned || hovered;
@@ -79,26 +79,32 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }: Sid
 
       {/* Nav Items */}
       <div className="flex-1 overflow-y-auto py-3 space-y-0.5 px-2">
-        {visibleTabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                expanded ? "justify-start" : "justify-center"
-              } ${
-                isActive
-                  ? "bg-siddha-gold/20 text-siddha-gold shadow-sm"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              }`}
-              title={tab.label}
-            >
-              <tab.Icon className={`shrink-0 ${expanded ? "w-4 h-4" : "w-5 h-5"}`} />
-              {expanded && <span className="truncate">{tab.label}</span>}
-            </button>
-          );
-        })}
+        {visibleTabs.length === 0 ? (
+          <div className={`text-white/40 text-[10px] ${expanded ? "px-2" : "hidden"}`}>
+            No permissions assigned
+          </div>
+        ) : (
+          visibleTabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  expanded ? "justify-start" : "justify-center"
+                } ${
+                  isActive
+                    ? "bg-siddha-gold/20 text-siddha-gold shadow-sm"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`}
+                title={tab.label}
+              >
+                <tab.Icon className={`shrink-0 ${expanded ? "w-4 h-4" : "w-5 h-5"}`} />
+                {expanded && <span className="truncate">{tab.label}</span>}
+              </button>
+            );
+          })
+        )}
       </div>
 
       {/* Sign Out */}

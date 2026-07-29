@@ -90,7 +90,10 @@ export default function Checkout() {
         await loadRazorpayScript();
         const config = await fetchRazorpayConfigApi();
         if (!config) throw new Error("Failed to fetch payment config");
-        const orderData = await createRazorpayOrderApi(total);
+        const orderData = await createRazorpayOrderApi({
+          items: cart.map(c => ({ productId: c.productId, quantity: c.quantity })),
+          couponCode: activeCoupon?.code,
+        });
         if (!orderData) throw new Error("Failed to create Razorpay order");
 
         const razorpay = new (window as any).Razorpay({

@@ -9,6 +9,8 @@ router.get("/orders", verifyAdmin, shippingController.getShippingOrders);
 router.get("/stats", verifyAdmin, shippingController.getShippingStats);
 router.post("/confirm", verifyAdmin, shippingController.confirmOrder);
 router.post("/mark-packed", verifyAdmin, shippingController.markPacked);
+router.get("/pickup-locations", verifyAdmin, shippingController.getPickupLocations);
+router.post("/assign-shiprocket", verifyAdmin, shippingController.assignShiprocket);
 router.post("/create-shiprocket-order", verifyAdmin, shippingController.createShiprocketOrder);
 router.post("/generate-awb", verifyAdmin, shippingController.generateAWB);
 router.post("/request-pickup", verifyAdmin, shippingController.requestPickup);

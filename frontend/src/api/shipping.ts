@@ -19,8 +19,17 @@ export const markPackedApi = async (orderId: string, dimensions: { length: numbe
   await client.post("/api/admin/shipping/mark-packed", { orderId, ...dimensions });
 };
 
-export const createShiprocketOrderApi = async (orderId: string): Promise<{ shiprocketOrderId: string; shipmentId: string }> => {
-  const res = await client.post("/api/admin/shipping/create-shiprocket-order", { orderId });
+export const fetchPickupLocationsApi = async (): Promise<{ name: string; address: string; email: string; phone: string }[]> => {
+  try {
+    const res = await client.get("/api/admin/shipping/pickup-locations");
+    return res.data;
+  } catch {
+    return [];
+  }
+};
+
+export const createShiprocketOrderApi = async (orderId: string, formData?: Record<string, any>): Promise<{ shiprocketOrderId: string; shipmentId: string }> => {
+  const res = await client.post("/api/admin/shipping/create-shiprocket-order", { orderId, ...formData });
   return res.data;
 };
 

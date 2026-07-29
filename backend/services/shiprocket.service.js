@@ -18,8 +18,29 @@ async function readTokenFromDb() {
 }
 
 async function saveTokenToDb(token) {
+  await ShiprocketAuth.deleteMany({});
   const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000);
-  await ShiprocketAuth.create({ token, expiresAt });
+
+  let pickupLocations = [];
+  try {
+    const res = await fetch(`${SR_API}/settings/company/pickup`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const companies = data?.data?.pickup_locations || data?.pickup_locations || [];
+      pickupLocations = companies.map((c) => ({
+        name: c.pickup_location || c.nickname || c.name || "Primary",
+        address: c.address || "",
+        email: c.email || "",
+        phone: c.phone || "",
+      }));
+    }
+  } catch {
+    // pickup fetch is best-effort
+  }
+
+  await ShiprocketAuth.create({ token, expiresAt, pickupLocations });
   cachedToken = token;
   cachedExpiry = expiresAt.getTime();
 }
@@ -125,6 +146,13 @@ export async function cancelShipment(shipmentIds) {
 
 export async function getPickupLocations() {
   return makeRequest("/settings/company/pickup");
+}
+
+export async function ndrAction(awb, action, comments) {
+  return makeRequest(`/ndr/${awb}/action`, {
+    method: "POST",
+    body: JSON.stringify({ action, comments }),
+  });
 }
 
 export async function checkServiceability({ pickupPincode, deliveryPincode, weight = 0.5, cod = false }) {

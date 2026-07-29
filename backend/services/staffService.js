@@ -46,7 +46,7 @@ export async function createStaff({ fullName, email, mobileNumber, password, per
     mobileNumber,
     password: hashedPassword,
     role: "STAFF",
-    isAdmin: false,
+    isAdmin: true,
     isActive: true,
     permissions: perms,
   });

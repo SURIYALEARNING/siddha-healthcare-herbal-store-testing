@@ -33,7 +33,7 @@ export default function Auth() {
         if (!userData.mobileNumber) {
           setGoogleUserData({ user: userData, accessToken });
         } else {
-          navigate(userData.isAdmin ? "/admin" : "/account", { replace: true });
+          navigate(userData.isAdmin || userData.role === "STAFF" || userData.role === "SUPER_ADMIN" ? "/admin" : "/account", { replace: true });
         }
       } catch (e) {
         console.error("Google auth failed:", e);
@@ -51,7 +51,8 @@ export default function Auth() {
     });
     setGoogleSubmitting(false);
     if (ok) {
-      navigate(googleUserData.user.isAdmin ? "/admin" : "/account", { replace: true });
+      const u = googleUserData.user;
+      navigate(u.isAdmin || u.role === "STAFF" || u.role === "SUPER_ADMIN" ? "/admin" : "/account", { replace: true });
     }
   };
 
@@ -77,7 +78,7 @@ export default function Auth() {
       setSuccess(t("auth.loginSuccess"));
       setTimeout(() => {
         const userObj = JSON.parse(localStorage.getItem("siddha_user") || "{}");
-        navigate(userObj.isAdmin ? "/admin" : "/account");
+        navigate(userObj.isAdmin || userObj.role === "STAFF" || userObj.role === "SUPER_ADMIN" ? "/admin" : "/account");
       }, 1500);
     }
   };

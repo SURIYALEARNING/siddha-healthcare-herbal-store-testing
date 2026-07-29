@@ -86,7 +86,7 @@ app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), 
   try {
     const event = req.body;
     if (event?.shipment_id && event?.current_status) {
-      const statusMap = {
+      const statusMap: Record<string, string> = {
         "PICKED UP": "PICKED_UP",
         "IN TRANSIT": "IN_TRANSIT",
         "OUT FOR DELIVERY": "OUT_FOR_DELIVERY",
@@ -95,15 +95,28 @@ app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), 
         "CANCELLED": "CANCELLED",
       };
       const status: string = event.current_status;
-      const mapped = (statusMap as Record<string, string>)[status] || status;
+      const mapped = statusMap[status] || status;
       const shipment = await Shipment.findById(event.shipment_id);
       if (shipment) {
-        await Order.findByIdAndUpdate(shipment.orderId, {
-          $set: {
-            shippingStatus: mapped,
-            ...(mapped === "DELIVERED" ? { status: "Delivered" } : {}),
-          },
-        });
+        const order = await Order.findById(shipment.orderId);
+        if (order && order.currentStatus !== "Delivered") {
+          await Order.findByIdAndUpdate(shipment.orderId, {
+            $set: {
+              shippingStatus: mapped,
+              ...(mapped === "DELIVERED" ? { status: "Delivered" } : {}),
+            },
+            $push: {
+              timeline: {
+                status: mapped === "DELIVERED" ? "Delivered" : "Shipped",
+                title: statusMap[status] ? { "PICKED UP": "Pickup Completed", "IN TRANSIT": "In Transit", "OUT FOR DELIVERY": "Out For Delivery", "DELIVERED": "Delivered", "RETURNED": "Returned", "CANCELLED": "Cancelled" }[status] || status : status,
+                description: event.current_status,
+                createdAt: new Date(),
+                updatedBy: "SHIPROCKET",
+                source: "SHIPROCKET",
+              },
+            },
+          });
+        }
         if (mapped === "DELIVERED") {
           shipment.deliveredAt = new Date();
           maybeCreateRemindersForOrder(shipment.orderId).catch((err) =>

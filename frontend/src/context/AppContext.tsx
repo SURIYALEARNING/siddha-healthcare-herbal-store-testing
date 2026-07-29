@@ -166,15 +166,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     razorpayPaymentId?: string
   ): Promise<Order | null> => {
     if (!auth.user) return null;
-    const subtotal = cart.cart.reduce((s, i) => s + i.discountPrice * i.quantity, 0);
-    const discount = activeCoupon ? Math.round(subtotal * (activeCoupon.percent / 100)) : 0;
     try {
       const order = await orders.submitOrder({
         items: cart.cart.map(c => ({
-          productId: c.productId, name: c.name, price: c.discountPrice, quantity: c.quantity, image: c.image,
+          productId: c.productId, quantity: c.quantity,
         })),
-        subtotal, couponDiscount: discount, total: subtotal - discount,
         shippingAddress, mobileNumber, email, fullName, paymentMethod,
+        couponCode: activeCoupon?.code,
         ...(razorpayPaymentId && { razorpayPaymentId }),
       });
       cart.clearCart(!!auth.user);
