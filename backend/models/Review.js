@@ -24,6 +24,12 @@ const reviewSchema = new mongoose.Schema({
   isVerifiedPurchase: { type: Boolean, default: false },
   isApproved: { type: Boolean, default: false },
 
+  adminReply: {
+    message: { type: String, default: "" },
+    repliedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    repliedAt: { type: Date },
+  },
+
   helpfulCount: { type: Number, default: 0 },
   helpfulBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true });

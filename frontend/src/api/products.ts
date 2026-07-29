@@ -11,7 +11,7 @@ export const fetchProductsApi = async (params?: {
 }): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
   try {
     const res = await client.get("/api/products", { params });
-    console.log(res.data);
+
 
 
     return res.data;
@@ -26,6 +26,21 @@ export const fetchProductByIdApi = async (id: string): Promise<Product> => {
     return res.data;
   } catch (error) {
     handleApiError("fetchProductByIdApi", error);
+  }
+};
+
+export const fetchAllProductsApi = async (params?: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  sort?: string;
+}): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
+  try {
+    const res = await client.get("/api/products", { params: { ...params, scope: "all" } });
+    return res.data;
+  } catch (error) {
+    handleApiError("fetchAllProductsApi", error);
   }
 };
 

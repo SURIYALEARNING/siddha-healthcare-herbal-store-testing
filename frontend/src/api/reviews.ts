@@ -83,6 +83,64 @@ export const approveReviewApi = async (
   }
 };
 
+export const approveReviewAdminApi = async (reviewId: string): Promise<Review> => {
+  try {
+    const res = await client.patch(`/api/admin/reviews/${reviewId}/approve`);
+    return res.data;
+  } catch (error) {
+    handleApiError("approveReviewAdminApi", error);
+  }
+};
+
+export const fetchAdminReviewsApi = async (params: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ reviews: Review[]; total: number; page: number; totalPages: number }> => {
+  try {
+    const res = await client.get("/api/admin/reviews", { params });
+    return res.data;
+  } catch (error) {
+    handleApiError("fetchAdminReviewsApi", error);
+  }
+};
+
+export const fetchReviewUsersApi = async (): Promise<any[]> => {
+  try {
+    const res = await client.get("/api/admin/reviews/users");
+    return res.data;
+  } catch (error) {
+    handleApiError("fetchReviewUsersApi", error);
+  }
+};
+
+export const fetchReviewsByUserApi = async (userId: string): Promise<Review[]> => {
+  try {
+    const res = await client.get(`/api/admin/reviews/user/${userId}`);
+    return res.data;
+  } catch (error) {
+    handleApiError("fetchReviewsByUserApi", error);
+  }
+};
+
+export const rejectReviewApi = async (reviewId: string): Promise<Review> => {
+  try {
+    const res = await client.patch(`/api/admin/reviews/${reviewId}/reject`);
+    return res.data;
+  } catch (error) {
+    handleApiError("rejectReviewApi", error);
+  }
+};
+
+export const replyToReviewApi = async (reviewId: string, message: string): Promise<Review> => {
+  try {
+    const res = await client.patch(`/api/admin/reviews/${reviewId}/reply`, { message });
+    return res.data;
+  } catch (error) {
+    handleApiError("replyToReviewApi", error);
+  }
+};
+
 export const fetchLatestReviewsApi = async (limit = 10): Promise<Review[]> => {
   try {
     const res = await client.get("/api/reviews/latest", { params: { limit } });

@@ -7,8 +7,13 @@ import {
   getProductReviews,
   getReviewStats,
   approveReview,
+  rejectReview,
+  replyToReview,
   markHelpful,
   getLatestReviewsAll,
+  getAdminReviews,
+  getReviewUsers,
+  getReviewsByUser,
 } from "../controllers/reviewController.js";
 
 const router = express.Router();
@@ -28,5 +33,13 @@ router.patch("/products/:id/reviews/:reviewId/helpful", verifyToken, markHelpful
 
 // Product reviews (admin)
 router.patch("/products/:id/reviews/:reviewId/approve", verifyAdmin, approveReview);
+
+// Admin review management
+router.get("/admin/reviews", verifyAdmin, getAdminReviews);
+router.get("/admin/reviews/users", verifyAdmin, getReviewUsers);
+router.get("/admin/reviews/user/:userId", verifyAdmin, getReviewsByUser);
+router.patch("/admin/reviews/:reviewId/approve", verifyAdmin, approveReview);
+router.patch("/admin/reviews/:reviewId/reject", verifyAdmin, rejectReview);
+router.patch("/admin/reviews/:reviewId/reply", verifyAdmin, replyToReview);
 
 export default router;

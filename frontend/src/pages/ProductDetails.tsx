@@ -67,6 +67,25 @@ export default function ProductDetails() {
   }, [id]);
 
   useEffect(() => {
+    const existing = document.querySelector('meta[name="robots"]');
+    if (product?.visibility === "UNLISTED") {
+      let meta = existing as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "robots";
+        document.head.appendChild(meta);
+      }
+      meta.content = "noindex,nofollow";
+    } else if (existing) {
+      existing.remove();
+    }
+    return () => {
+      const meta = document.querySelector('meta[name="robots"]');
+      if (meta && meta.getAttribute("content") === "noindex,nofollow") meta.remove();
+    };
+  }, [product?.visibility]);
+
+  useEffect(() => {
     if (user && user.address?.pincode) {
       setPincodeLoading(true);
       checkMyAddressApi()
@@ -131,6 +150,7 @@ export default function ProductDetails() {
 
   const relatedProducts = products
     .filter((p) => {
+      if ((p.visibility || "PUBLIC") === "UNLISTED") return false;
       const pCat = typeof p.category === "object" ? (p.category as any)?._id : p.category;
       const prodCat = typeof product.category === "object" ? (product.category as any)?._id : product.category;
       return pCat === prodCat && p._id !== product._id;

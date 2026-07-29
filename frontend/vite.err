@@ -1,0 +1,17 @@
+[2m12:28:16 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: D:\siddha-healthcare-herbal-store\frontend\src\components\admin\AnalyticsTab.tsx: Identifier 'Activity' has already been declared. (17:18)
+
+[0m [90m 15 |[39m   [33mProductAnalytics[39m[33m,[39m [33mCategoryAnalytics[39m[33m,[39m [33mInventoryAnalytics[39m[33m,[39m [33mBatchAnalytics[39m[33m,[39m
+ [90m 16 |[39m   [33mReminderAnalytics[39m[33m,[39m [33mReviewAnalytics[39m[33m,[39m [33mPaymentAnalytics[39m[33m,[39m [33mShippingAnalytics[39m[33m,[39m
+[31m[1m>[22m[39m[90m 17 |[39m   [33mStaffAnalytics[39m[33m,[39m [33mActivity[39m[33m,[39m [33mNotification[39m[33m,[39m [33mUser[39m[33m,[39m
+ [90m    |[39m                   [31m[1m^[22m[39m
+ [90m 18 |[39m } [36mfrom[39m [32m"../../types"[39m[33m;[39m
+ [90m 19 |[39m
+ [90m 20 |[39m [36mconst[39m [33mPIE_COLORS[39m [33m=[39m [[32m"#14532D"[39m[33m,[39m [32m"#D4AF37"[39m[33m,[39m [32m"#10B981"[39m[33m,[39m [32m"#6EE7B7"[39m[33m,[39m [32m"#F59E0B"[39m[33m,[39m [32m"#EF4444"[39m[33m,[39m [32m"#8B5CF6"[39m[33m,[39m [32m"#EC4899"[39m][33m;[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mD:/siddha-healthcare-herbal-store/frontend/src/components/admin/AnalyticsTab.tsx[39m:17:18
+[33m  15 |    ProductAnalytics, CategoryAnalytics, InventoryAnalytics, BatchAnalytics,
+  16 |    ReminderAnalytics, ReviewAnalytics, PaymentAnalytics, ShippingAnalytics,
+  17 |    StaffAnalytics, Activity, Notification, User,
+     |                    ^
+  18 |  } from "../../types";
+  19 |  [39m

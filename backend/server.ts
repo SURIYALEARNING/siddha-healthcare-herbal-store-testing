@@ -19,11 +19,17 @@ import couponRoutes from './routes/couponRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import carouselRoutes from './routes/carouselRoutes.js';
+import batchRoutes from './routes/batchRoutes.js';
+import reminderRoutes from './routes/reminderRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import paymentRoutes from './routes/payment.js';
 import { router as adminShippingRoutes, publicRouter as publicShippingRoutes } from './routes/shippingRoutes.js';
 import Shipment from './models/Shipment.js';
 import Order from './models/Order.js';
 import { trackOrder } from './controllers/adminController.js';
+import { maybeCreateRemindersForOrder } from './services/reminderService.js';
 
 connectDB();
 dotenv.config();
@@ -31,8 +37,15 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
 
+const allowedOrigins = (
+  process.env.FRONTEND_URL || "http://localhost:5173"
+).split(",").map((s) => s.trim());
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(null, true); // allow all in dev
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -62,6 +75,11 @@ app.get("/api/orders/track/:id", trackOrder);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin/shipping", adminShippingRoutes);
 app.use("/api/shipping", publicShippingRoutes);
+app.use("/api/carousel", carouselRoutes);
+app.use("/api/admin/batches", batchRoutes);
+app.use("/api/admin/reminders", reminderRoutes);
+app.use("/api/admin/staff", staffRoutes);
+app.use("/api/admin/dashboard", analyticsRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
 app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), async (req, res) => {
@@ -88,6 +106,9 @@ app.post("/api/webhooks/shiprocket", express.raw({ type: "application/json" }), 
         });
         if (mapped === "DELIVERED") {
           shipment.deliveredAt = new Date();
+          maybeCreateRemindersForOrder(shipment.orderId).catch((err) =>
+            console.error("Failed to create delivery reminders:", err)
+          );
         }
         shipment.trackingStatus = mapped;
         if (event.history) shipment.trackingHistory = event.history;

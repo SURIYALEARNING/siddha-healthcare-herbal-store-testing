@@ -21,9 +21,8 @@ export default function Shop() {
   const {
     searchTerm, setSearchTerm,
     categoryFilter, setCategoryFilter,
-    maxPrice, setMaxPrice,
     sortBy, setSortBy,
-    categories, priceRange,
+    categories,
     paginatedProducts, sortedProducts,
     currentPage, totalPages, goToPage,
     resetFilters,
@@ -49,9 +48,6 @@ export default function Shop() {
           categoryFilter={categoryFilter}
           categories={categories}
           onCategoryChange={setCategoryFilter}
-          maxPrice={maxPrice}
-          priceRange={priceRange}
-          onPriceChange={setMaxPrice}
           sortBy={sortBy}
           onSortChange={setSortBy}
         />
@@ -97,9 +93,6 @@ export default function Shop() {
               categoryFilter={categoryFilter}
               categories={categories}
               onCategoryChange={setCategoryFilter}
-              maxPrice={maxPrice}
-              priceRange={priceRange}
-              onPriceChange={setMaxPrice}
               onClose={() => setMobileFiltersOpen(false)}
             />
           )}

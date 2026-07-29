@@ -100,7 +100,7 @@ router.post(
     }
   ),
 
-  (req, res) => {
+  async (req, res) => {
 
     const { user } = req
     try {
@@ -112,12 +112,18 @@ router.post(
         email: user.email,
         mobileNumber: user.mobileNumber,
         isAdmin: user.isAdmin,
+        role: user.role || "STAFF",
+        isActive: user.isActive !== false,
+        permissions: user.permissions || {},
         address: user.address // This will send empty fields if not updated yet
       };
 
+      // Update lastLogin
+      await User.findByIdAndUpdate(user._id, { $set: { lastLogin: new Date() } });
+
       // 3. Generate Tokens (Payload la role based authorization-ku 'isAdmin' add panrom)
       const accessToken = jwt.sign(
-        { id: user.id, isAdmin: user.isAdmin },
+        { id: user.id, isAdmin: user.isAdmin, role: user.role || "STAFF" },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '59m' }
       );
@@ -171,11 +177,14 @@ router.get(
       email: user.email,
       mobileNumber: user.mobileNumber,
       isAdmin: user.isAdmin,
+      role: user.role || "STAFF",
+      isActive: user.isActive !== false,
+      permissions: user.permissions || {},
       address: user.address,
     };
 
     const accessToken = jwt.sign(
-      { id: user.id, isAdmin: user.isAdmin },
+      { id: user.id, isAdmin: user.isAdmin, role: user.role || "STAFF" },
       ACCESS_TOKEN_SECRET,
       { expiresIn: '59m' }
     );
@@ -234,7 +243,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { id: user._id.toString(), isAdmin: user.isAdmin },
+      { id: user._id.toString(), isAdmin: user.isAdmin, role: user.role || "STAFF" },
       ACCESS_TOKEN_SECRET,
       { expiresIn: '59m' }
     );
@@ -258,6 +267,9 @@ router.post('/refresh', async (req, res) => {
       email: user.email,
       mobileNumber: user.mobileNumber,
       isAdmin: user.isAdmin,
+      role: user.role || "STAFF",
+      isActive: user.isActive !== false,
+      permissions: user.permissions || {},
       address: user.address,
     };
 
@@ -308,6 +320,9 @@ router.put('/update-profile/:userId', async (req, res) => {
       email: updatedUser.email,
       mobileNumber: updatedUser.mobileNumber,
       isAdmin: updatedUser.isAdmin,
+      role: updatedUser.role || "STAFF",
+      isActive: updatedUser.isActive !== false,
+      permissions: updatedUser.permissions || {},
       address: updatedUser.address,
     };
 

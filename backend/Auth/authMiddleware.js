@@ -6,8 +6,8 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <TOKEN>
- 
-  
+
+
   if (!token) return res.status(401).json({ message: "Access Denied. No token provided." });
   jwt.verify(token, ACCESS_TOKEN_SECRET, (err, decodedUser) => {
 
@@ -23,7 +23,7 @@ const verifyToken = (req, res, next) => {
 
 const verifyAdmin = (req, res, next) => {
   // 1. Header la irunthu token edukka confirmed
-  console.log("verfy admin");
+
 
   const authHeader = req.headers.authorization;
 
@@ -35,7 +35,7 @@ const verifyAdmin = (req, res, next) => {
 
   try {
     // 2. Token valid ah nu verify panrathu
-    console.log(token, ACCESS_TOKEN_SECRET,);
+
     const verified = jwt.verify(token, ACCESS_TOKEN_SECRET);
 
     // 3. User data va req object la store panrom (for future use)

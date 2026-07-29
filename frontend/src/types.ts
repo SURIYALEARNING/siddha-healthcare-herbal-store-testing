@@ -1,7 +1,53 @@
+export type ReminderStatus = "PENDING" | "WHATSAPP_SENT" | "CALL_PENDING" | "CALL_COMPLETED" | "PURCHASED_AGAIN" | "CLOSED";
+export type WhatsappStatus = "PENDING" | "SENT" | "FAILED";
+export type CallStatus = "PENDING" | "PURCHASED_AGAIN" | "NOT_INTERESTED" | "NO_RESPONSE" | "WRONG_NUMBER" | "CALL_LATER" | "OTHER";
+
+export interface Reminder {
+  _id: string;
+  customerId: {
+    _id: string;
+    fullName: string;
+    mobileNumber: string;
+    email?: string;
+  };
+  orderId: string;
+  orderItemIndex: number;
+  productId: {
+    _id: string;
+    name: { en: string; ta?: string };
+    images: { url: string }[];
+    price: number;
+    discountPrice?: number;
+  };
+  quantity: number;
+  reminderDays: number;
+  purchaseDate: string;
+  reminderDate: string;
+  whatsappStatus: WhatsappStatus;
+  callStatus: CallStatus;
+  callReason: string;
+  callNotes: string;
+  status: ReminderStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReminderStats {
+  todayPending: number;
+  todayWhatsappSent: number;
+  todayCallPending: number;
+}
+
+export interface AdminReply {
+  message: string;
+  repliedBy?: string;
+  repliedAt?: string;
+}
+
 export interface Review {
   _id: string;
-  productId: string;
-  userId?: string;
+  productId: any;
+  userId?: any;
   userName: string;
   userAvatar?: string;
   rating: number;
@@ -10,9 +56,19 @@ export interface Review {
   images?: string[];
   isVerifiedPurchase: boolean;
   isApproved: boolean;
+  adminReply?: AdminReply;
   helpfulCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ReviewUser {
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  totalReviews: number;
+  pendingReviews: number;
+  approvedReviews: number;
 }
 
 export interface ReviewPreview {
@@ -84,6 +140,9 @@ export interface Product {
   totalReviews?: number;
   isFeatured?: boolean;
   isActive?: boolean;
+  visibility?: "PUBLIC" | "UNLISTED";
+  enableReminder?: boolean;
+  reminderDays?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -104,12 +163,19 @@ export interface CartItem {
   image: string;
 }
 
+export interface BatchAllocation {
+  batchId: string;
+  batchNumber?: string;
+  quantity: number;
+}
+
 export interface OrderItem {
   productId: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
+  batchAllocations?: BatchAllocation[];
 }
 
 export type ShippingStatus =
@@ -132,6 +198,7 @@ export interface Order {
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending';
   date: string;
+  createdAt?: string;
   razorpayPaymentId?: string;
   shippingStatus?: ShippingStatus;
   shiprocketOrderId?: string;
@@ -247,6 +314,41 @@ export interface PincodeResponse {
   address?: string;
 }
 
+export interface Batch {
+  _id: string;
+  productId: string | Product;
+  batchNumber: string;
+  quantityProduced: number;
+  currentStock: number;
+  manufactureDate: string;
+  expiryDate: string;
+  preparedBy: string;
+  supervisedBy: string;
+  approvedBy: string;
+  status: "ACTIVE" | "OUT_OF_STOCK" | "HOLD" | "EXPIRED";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StockAdjustment {
+  _id: string;
+  batchId: string;
+  previousStock: number;
+  newStock: number;
+  difference: number;
+  reason: "OFFLINE_SALES" | "EXPIRED" | "DAMAGED" | "STOCK_CORRECTION" | "SAMPLE" | "OTHER";
+  reasonDetails: string;
+  updatedBy: string;
+  createdAt: string;
+}
+
+export type PermissionKey =
+  | "dashboard" | "products" | "categories" | "orders" | "customers"
+  | "batches" | "reminders" | "reviews" | "coupons" | "carousel"
+  | "consultations" | "shipping" | "staffManagement";
+
+export type Permissions = Record<PermissionKey, boolean>;
+
 export interface User {
   id: string;
   fullName: string;
@@ -254,4 +356,37 @@ export interface User {
   mobileNumber: string;
   address?: Address;
   isAdmin?: boolean;
+  role?: "SUPER_ADMIN" | "STAFF";
+  isActive?: boolean;
+  permissions?: Permissions;
+  lastLogin?: string;
 }
+
+// Analytics types
+export interface OverviewData {
+  totalRevenue: number; totalOrders: number; totalCustomers: number;
+  totalProducts: number; totalCategories: number; averageOrderValue: number;
+  todayRevenue: number; todayOrders: number;
+  pendingOrders: number; deliveredOrders: number; cancelledOrders: number;
+  lowStockProducts: number; outOfStockProducts: number; expiredBatches: number;
+  pendingReminders: number; pendingReviews: number;
+  growth: { revenue: number; orders: number; avgOrderValue: number };
+}
+
+export interface DailyRevenue { date: string; revenue: number; orders: number }
+export interface RevenueData { grossRevenue: number; discountAmount: number; netRevenue: number; dailyRevenue: DailyRevenue[] }
+export interface OrderAnalytics { totalOrders: number; completedOrders: number; pendingOrders: number; cancelledOrders: number; shippedOrders: number; orderStatusChart: { name: string; value: number }[]; paymentMethodChart: { name: string; value: number }[]; ordersByDay: { date: string; count: number }[] }
+export interface TopCustomer { id: string; fullName: string; email: string; mobileNumber: string; totalOrders: number; totalSpent: number }
+export interface CustomerAnalytics { totalCustomers: number; newCustomers: number; returningCustomers: number; repeatPurchaseRate: number; customerLifetimeValue: number; topCustomers: TopCustomer[]; registrationTrend: { date: string; count: number }[] }
+export interface ProductAnalytics { topSelling: any[]; leastSelling: any[]; totalProducts: number; productsWithSales: number; productsNeverSold: number }
+export interface CategoryInfo { id: string; name: string; sales: number; revenue: number; orders: number }
+export interface CategoryAnalytics { categories: CategoryInfo[]; totalCategories: number }
+export interface InventoryAnalytics { totalStockQuantity: number; lowStockCount: number; outOfStockCount: number; totalProduced: number; totalSold: number }
+export interface BatchAnalytics { activeBatches: number; outOfStockBatches: number; expiredBatches: number; holdBatches: number; statusChart: { name: string; value: number }[]; batches: any[] }
+export interface ReminderAnalytics { todayReminders: number; pendingReminders: number; whatsappSent: number; callPending: number; callCompleted: number; purchasedAgain: number; notInterested: number; noResponse: number; reminderTrend: { date: string; count: number }[]; conversionRate: number }
+export interface ReviewAnalytics { totalReviews: number; pendingReviews: number; approvedReviews: number; averageRating: number; ratingChart: { rating: number; count: number }[]; reviewTrend: { date: string; count: number }[] }
+export interface PaymentAnalytics { successfulPayments: number; failedPayments: number; refundAmount: number; paymentMethodChart: { name: string; value: number }[] }
+export interface ShippingAnalytics { deliveredOrders: number; inTransitOrders: number; rtoOrders: number; cancelledShipments: number }
+export interface StaffAnalytics { totalStaff: number; activeStaff: number; staff: any[] }
+export interface Activity { type: string; message: string; detail: string; time: string }
+export interface Notification { type: string; message: string; severity: string }

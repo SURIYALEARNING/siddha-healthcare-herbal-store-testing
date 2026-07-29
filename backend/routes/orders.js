@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import { allocateFromBatches } from "../controllers/batchController.js";
 import { getLoggedUser } from '../services/authHelper.js'
 import { verifyToken, verifyAdmin } from '../Auth/authMiddleware.js'
 
@@ -47,29 +48,25 @@ router.post("/orders", verifyToken, async (req, res) => {
   session.startTransaction();
 
   try {
-    // 3. Stock verification & deduction loop
+    // 3. Stock verification & FIFO batch allocation
     for (const item of items) {
       if (!item.productId || !item.quantity || item.quantity <= 0) {
         throw new Error("Each item must have a valid productId and positive quantity");
       }
 
-
-      // ✅ FIXED: Use item.productId instead of items[0].productId
+      // Verify product exists (stock check is handled by batch allocation)
       const prod = await Product.findById(item.productId).session(session);
-
       if (!prod) {
         console.log(`error 2: Product with ID ${item.productId} not found.`);
         throw new Error(`Product with ID ${item.productId} not found.`);
       }
 
-      if (prod.stock < item.quantity) {
-        console.log(`error 3: Not enough stock for ${prod.name}. Only ${prod.stock} left.`);
-        throw new Error(`Not enough stock for ${prod.name}. Only ${prod.stock} left.`);
-      }
+      // Allocate from ACTIVE batches using FIFO (within transaction)
+      // Throws if insufficient batch stock
+      const allocations = await allocateFromBatches(item.productId, item.quantity, session);
 
-      // Decrement stock in DB
-      prod.stock -= item.quantity;
-      await prod.save({ session });
+      // Attach batch info to item
+      item.batchAllocations = allocations;
     }
 
     // 4. Create the new order object

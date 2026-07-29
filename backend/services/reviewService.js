@@ -122,8 +122,11 @@ export async function getLatestReviews(productId, limit = 3) {
     .lean();
 }
 
-export async function getProductsWithLatestReviews({ page = 1, limit = 12, category, search, sort }) {
-  const match = {};
+export async function getProductsWithLatestReviews({ page = 1, limit = 12, category, search, sort, scope }) {
+  const match = scope === "all" ? {} : {
+    $or: [{ visibility: "PUBLIC" }, { visibility: { $exists: false } }],
+    isActive: true,
+  };
 
   if (category && category !== "All") {
     match.$or = [
@@ -244,6 +247,93 @@ export async function markHelpful(reviewId, userId) {
   await review.save();
 
   return { helpfulCount: review.helpfulCount };
+}
+
+export async function getAllReviews(filters = {}) {
+  const query = {};
+  if (filters.status === "pending") query.isApproved = false;
+  else if (filters.status === "approved") query.isApproved = true;
+  else if (filters.status === "rejected") query.isApproved = false; // same field, but admin can track via isApproved=false only
+  if (filters.productId) query.productId = filters.productId;
+  if (filters.userId) query.userId = filters.userId;
+
+  let sortOption = { createdAt: -1 };
+  if (filters.sort === "oldest") sortOption = { createdAt: 1 };
+
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(100, Number(filters.limit) || 20);
+  const skip = (page - 1) * limit;
+
+  const [reviews, total] = await Promise.all([
+    Review.find(query)
+      .populate("productId", "name images")
+      .populate("userId", "fullName email")
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Review.countDocuments(query),
+  ]);
+
+  return { reviews, total, page, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getReviewUsers() {
+  const users = await Review.aggregate([
+    {
+      $group: {
+        _id: "$userId",
+        userName: { $first: "$userName" },
+        userAvatar: { $first: "$userAvatar" },
+        totalReviews: { $sum: 1 },
+        pendingReviews: { $sum: { $cond: [{ $eq: ["$isApproved", false] }, 1, 0] } },
+        approvedReviews: { $sum: { $cond: [{ $eq: ["$isApproved", true] }, 1, 0] } },
+      },
+    },
+    { $sort: { totalReviews: -1 } },
+  ]);
+
+  return users.map((u) => ({
+    userId: u._id,
+    userName: u.userName,
+    userAvatar: u.userAvatar,
+    totalReviews: u.totalReviews,
+    pendingReviews: u.pendingReviews,
+    approvedReviews: u.approvedReviews,
+  }));
+}
+
+export async function getReviewsByUser(userId) {
+  return Review.find({ userId })
+    .populate("productId", "name images")
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
+export async function rejectReview(reviewId) {
+  const review = await Review.findByIdAndUpdate(
+    reviewId,
+    { isApproved: false },
+    { new: true }
+  );
+  if (!review) return null;
+  return review;
+}
+
+export async function replyToReview(reviewId, adminId, message) {
+  const review = await Review.findByIdAndUpdate(
+    reviewId,
+    {
+      $set: {
+        "adminReply.message": message,
+        "adminReply.repliedBy": adminId,
+        "adminReply.repliedAt": new Date(),
+      },
+    },
+    { new: true }
+  );
+  if (!review) return null;
+  return review;
 }
 
 export async function getLatestReviewsAll(limit = 10) {

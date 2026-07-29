@@ -1,5 +1,11 @@
 import mongoose from "mongoose";
 
+const batchAllocationSchema = new mongoose.Schema({
+  batchId: { type: mongoose.Schema.Types.ObjectId, ref: "Batch" },
+  batchNumber: { type: String },
+  quantity: { type: Number, required: true },
+}, { _id: false });
+
 const orderItemSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -10,6 +16,7 @@ const orderItemSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   quantity: { type: Number, required: true, min: 1 },
   image: { type: String },
+  batchAllocations: [batchAllocationSchema],
 });
 
 const orderSchema = new mongoose.Schema(

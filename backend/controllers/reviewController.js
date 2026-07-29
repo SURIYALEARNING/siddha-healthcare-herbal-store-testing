@@ -155,6 +155,65 @@ export async function markHelpful(req, res) {
   }
 }
 
+export async function getAdminReviews(req, res) {
+  try {
+    const { status, productId, userId, sort, page, limit } = req.query;
+    const result = await reviewService.getAllReviews({ status, productId, userId, sort, page, limit });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch reviews.", details: error.message });
+  }
+}
+
+export async function getReviewUsers(req, res) {
+  try {
+    const users = await reviewService.getReviewUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch review users.", details: error.message });
+  }
+}
+
+export async function getReviewsByUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const reviews = await reviewService.getReviewsByUser(userId);
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch user reviews.", details: error.message });
+  }
+}
+
+export async function rejectReview(req, res) {
+  try {
+    const { reviewId } = req.params;
+    const review = await reviewService.rejectReview(reviewId);
+    if (!review) return res.status(404).json({ error: "Review not found." });
+
+    res.status(200).json({ message: "Review rejected.", review });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to reject review.", details: error.message });
+  }
+}
+
+export async function replyToReview(req, res) {
+  try {
+    const { reviewId } = req.params;
+    const { message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: "Reply message is required." });
+    }
+
+    const adminId = req.user?.id || req.user?._id;
+    const review = await reviewService.replyToReview(reviewId, adminId, message.trim());
+    if (!review) return res.status(404).json({ error: "Review not found." });
+
+    res.status(200).json({ message: "Reply added successfully.", review });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to reply to review.", details: error.message });
+  }
+}
+
 export async function getLatestReviewsAll(req, res) {
   try {
     const { limit = 10 } = req.query;

@@ -3,6 +3,7 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import { User } from '../models/User.js';
 import Consultation from '../models/Consultation.js';
+import { maybeCreateRemindersForOrder } from '../services/reminderService.js';
 
 export async function getAdminOrders(req, res) {
   try {
@@ -22,6 +23,14 @@ export async function updateOrderStatus(req, res) {
 
     const order = await Order.findByIdAndUpdate(req.params.id, { $set: updateFields }, { new: true });
     if (!order) return res.status(404).json({ error: "Order details not found." });
+
+    const becameDelivered =
+      (status === "Delivered" || updateFields.shippingStatus === "DELIVERED");
+    if (becameDelivered) {
+      maybeCreateRemindersForOrder(order._id).catch((err) =>
+        console.error("Failed to create delivery reminders:", err)
+      );
+    }
 
     res.json({ message: "Order status modified!", order });
   } catch (error) {

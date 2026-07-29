@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "http://192.168.1.33:5000",
+  baseURL: "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -113,15 +113,18 @@ client.interceptors.response.use(
     }
 
     const status = error.response?.status;
-    const msg = error.response?.data?.error || error.response?.data?.message || error.message;
 
     if (toast) {
-      if (status === 400 || status === 404) {
-        toast.showWarning("Warning", msg);
-      } else if (status === 401 || status === 403) {
-        toast.showError("Error", msg);
+      if (status === 400) {
+        toast.showWarning("Invalid Request", "Please check your input and try again.");
+      } else if (status === 401) {
+        toast.showError("Session Expired", "Please log in again.");
+      } else if (status === 403) {
+        toast.showError("Access Denied", "You do not have permission for this action.");
+      } else if (status === 404) {
+        toast.showWarning("Not Found", "The requested resource was not found.");
       } else if (status >= 500) {
-        toast.showError("Server Error", msg);
+        toast.showError("Something Went Wrong", "An unexpected error occurred. Please try again later.");
       }
     }
 

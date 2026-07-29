@@ -14,7 +14,6 @@ const productSchema = new mongoose.Schema({
   },
   price: { type: Number, required: true },
   discountPrice: { type: Number },
-  stock: { type: Number, default: 0 },
   size: {
     value: { type: Number, default: 0 },
     unit: {
@@ -54,6 +53,13 @@ const productSchema = new mongoose.Schema({
   totalReviews: { type: Number, default: 0 },
   isFeatured: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
+  visibility: {
+    type: String,
+    enum: ["PUBLIC", "UNLISTED"],
+    default: "PUBLIC",
+  },
+  enableReminder: { type: Boolean, default: true },
+  reminderDays: { type: Number, default: 0, min: 0 },
 }, { timestamps: true });
 
 productSchema.index({ "name.en": 1 });

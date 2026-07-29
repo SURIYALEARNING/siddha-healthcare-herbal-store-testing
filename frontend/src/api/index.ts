@@ -10,3 +10,5 @@ export * from "./admin";
 export * from "./cart";
 export * from "./payment";
 export * from "./reviews";
+export * from "./carousel";
+export * from "./batches";

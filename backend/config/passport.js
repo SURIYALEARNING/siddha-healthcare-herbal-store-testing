@@ -20,6 +20,11 @@ passport.use(
                         message: "User Not Found"
                     });
                 }
+                if (user.role === "STAFF" && !user.isActive) {
+                    return done(null, false, {
+                        message: "Account Disabled."
+                    });
+                }
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (!isMatch) {
                     return done(null, false, {

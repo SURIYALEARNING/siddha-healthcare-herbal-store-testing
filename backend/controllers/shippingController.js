@@ -2,6 +2,7 @@ import Order from '../models/Order.js';
 import Shipment from '../models/Shipment.js';
 import { User } from '../models/User.js';
 import * as shiprocket from '../services/shiprocket.service.js';
+import { maybeCreateRemindersForOrder } from '../services/reminderService.js';
 
 export async function getShippingOrders(req, res) {
   try {
@@ -183,6 +184,9 @@ export async function trackShipment(req, res) {
         await Shipment.findByIdAndUpdate(shipmentId, {
           $set: { deliveredAt: new Date() },
         });
+        maybeCreateRemindersForOrder(shipment.orderId).catch((err) =>
+          console.error("Failed to create delivery reminders:", err)
+        );
       }
     }
 

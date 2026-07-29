@@ -1,16 +1,22 @@
 import Product from "../models/Product.js";
 import { getProductsWithLatestReviews, getLatestReviews } from "../services/reviewService.js";
 import { deleteMedia } from "../services/uploadService.js";
+import { getProductStock, getProductsStock } from "../services/stockService.js";
 
 export async function getAllProducts(req, res) {
   try {
-    const { page = 1, limit = 50, category, search, sort } = req.query;
+    const { page = 1, limit = 50, category, search, sort, scope } = req.query;
     
     const result = await getProductsWithLatestReviews({
       page: Number(page), limit: Number(limit),
-      category, search, sort,
+      category, search, sort, scope,
     });
- 
+
+    const productIds = result.products.map(p => p._id);
+    const stockMap = await getProductsStock(productIds);
+    for (const product of result.products) {
+      product.stock = stockMap[product._id.toString()] || 0;
+    }
     
     res.status(200).json(result);
   } catch (error) {
@@ -20,10 +26,9 @@ export async function getAllProducts(req, res) {
 
 export async function getProductById(req, res) {
   try {
-    const product = await Product.findById(req.params.id)
-      .populate("category")
-      .lean();
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    const product = await Product.findById(req.params.id).lean();
+    if (!product || product.isActive === false) return res.status(404).json({ error: "Product not found" });
+    product.stock = await getProductStock(product._id);
     const latestReviews = await getLatestReviews(product._id, 3);
     res.status(200).json({ ...product, latestReviews });
   } catch (error) {
@@ -42,7 +47,6 @@ export async function createProduct(req, res) {
       name: typeof name === "string" ? { en: name, ta: "" } : name,
       price: Number(price),
       discountPrice: discountPrice ? Number(discountPrice) : Number(price),
-      stock: stock !== undefined ? Number(stock) : 10,
       category,
       isActive: true,
     };
@@ -61,6 +65,7 @@ export async function createProduct(req, res) {
     }
     if (req.body.size) productData.size = req.body.size;
     if (req.body.isFeatured !== undefined) productData.isFeatured = req.body.isFeatured;
+    if (req.body.visibility) productData.visibility = req.body.visibility;
     if (req.body.averageRating !== undefined) productData.averageRating = req.body.averageRating;
     if (req.body.totalReviews !== undefined) productData.totalReviews = req.body.totalReviews;
 
@@ -96,6 +101,7 @@ export async function createProduct(req, res) {
 export async function updateProduct(req, res) {
   try {
     const updates = { ...req.body };
+    delete updates.stock;
 
     const transFields = ["name", "description", "productMotto", "shortDescription", "expiryDuration"];
     for (const field of transFields) {

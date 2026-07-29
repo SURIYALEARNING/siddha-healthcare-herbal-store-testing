@@ -3,7 +3,6 @@ import { useApp } from "../context/AppContext";
 import { useTranslation } from "react-i18next";
 import HeroCarousel from "../components/HeroCarousel";
 import ProductPromoCarousel from "../components/ProductPromoCarousel";
-import { promoData } from "../data/promoData";
 import logo from '../assets/logo.png'
 import Shop from './Shop'
 import {
@@ -145,7 +144,7 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
         </div>
       </section>
 
-      <ProductPromoCarousel items={promoData} />
+      <ProductPromoCarousel />
 
       <Shop />
 

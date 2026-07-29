@@ -26,7 +26,6 @@ export function useShopFilters(products: Product[], lang: string = "en", dbCateg
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const [maxPrice, setMaxPrice] = useState(Infinity);
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -58,12 +57,6 @@ export function useShopFilters(products: Product[], lang: string = "en", dbCateg
     return ["All", ...Array.from(catSet).filter(Boolean).sort()];
   }, [products, lang, dbCategories]);
 
-  const priceRange = useMemo(() => {
-    if (products.length === 0) return { min: 100, max: 10000 };
-    const prices = products.map((p) => p.discountPrice);
-    return { min: Math.min(...prices), max: Math.max(10000, ...prices) };
-  }, [products]);
-
   const catIdToName = useMemo(() => {
     const map: Record<string, string> = {};
     if (dbCategories) {
@@ -92,10 +85,9 @@ export function useShopFilters(products: Product[], lang: string = "en", dbCateg
         pDesc.includes(term);
       const catName = getCatName(p);
       const matchesCategory = categoryFilter === "All" || catName === categoryFilter;
-      const matchesPrice = p.discountPrice <= maxPrice;
-      return matchesSearch && matchesCategory && matchesPrice;
+      return matchesSearch && matchesCategory;
     });
-  }, [products, debouncedSearch, categoryFilter, maxPrice, lang, getCatName]);
+  }, [products, debouncedSearch, categoryFilter, lang, getCatName]);
 
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];
@@ -137,22 +129,16 @@ export function useShopFilters(products: Product[], lang: string = "en", dbCateg
     setSearchTerm("");
     setDebouncedSearch("");
     setCategoryFilter("All");
-    setMaxPrice(priceRange.max);
     setSortBy("newest");
     setCurrentPage(1);
     setSearchParams({});
-  }, [priceRange.max, setSearchParams]);
+  }, [setSearchParams]);
 
   const setCategory = useCallback((cat: string) => {
     setCategoryFilter(cat);
     setCurrentPage(1);
     setSearchParams({});
   }, [setSearchParams]);
-
-  const setPrice = useCallback((price: number) => {
-    setMaxPrice(price);
-    setCurrentPage(1);
-  }, []);
 
   const setSort = useCallback((sort: string) => {
     setSortBy(sort);
@@ -165,12 +151,9 @@ export function useShopFilters(products: Product[], lang: string = "en", dbCateg
     debouncedSearch,
     categoryFilter,
     setCategoryFilter: setCategory,
-    maxPrice,
-    setMaxPrice: setPrice,
     sortBy,
     setSortBy: setSort,
     categories,
-    priceRange,
     filteredProducts,
     sortedProducts,
     paginatedProducts,
