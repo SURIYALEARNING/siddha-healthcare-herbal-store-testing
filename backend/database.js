@@ -1,6 +1,12 @@
 // db.js
 import mongoose from 'mongoose';
 import 'dotenv/config';
+
+mongoose.plugin((schema) => {
+  schema.set('toJSON', { virtuals: true });
+  schema.set('toObject', { virtuals: true });
+});
+
 const connectDB = async () => {
   try {
     // Replace with your actual URI string or use process.env.MONGO_URI

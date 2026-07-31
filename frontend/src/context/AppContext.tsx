@@ -51,6 +51,9 @@ interface AppContextType {
   adminAddBlog: (blogData: Partial<Blog>) => Promise<boolean>;
   adminEditBlog: (blogId: string, blogData: Partial<Blog>) => Promise<boolean>;
   adminDeleteBlog: (blogId: string) => Promise<boolean>;
+  blogCategories: { _id: string; name: string }[];
+  adminAddBlogCategory: (name: string) => Promise<{ _id: string; name: string } | null>;
+  adminDeleteBlogCategory: (id: string) => Promise<boolean>;
   adminAddCoupon: (couponData: Partial<Coupon>) => Promise<boolean>;
   adminFetchOrders: () => Promise<Order[]>;
   adminFetchUsers: () => Promise<any[]>;
@@ -88,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await Promise.all([
         products.fetchProducts(),
         blogs.fetchBlogs(),
+        blogs.fetchBlogCategories(),
         coupons.fetchCoupons(),
       ]);
       setLoading(false);
@@ -252,6 +256,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     adminAddBlog: blogs.adminAddBlog,
     adminEditBlog: blogs.adminEditBlog,
     adminDeleteBlog: blogs.adminDeleteBlog,
+    blogCategories: blogs.blogCategories,
+    adminAddBlogCategory: blogs.adminAddBlogCategory,
+    adminDeleteBlogCategory: blogs.adminDeleteBlogCategory,
     adminAddCoupon: coupons.adminAddCoupon,
     adminFetchOrders: orders.adminFetchOrders,
     adminFetchUsers: adminFetchUsersApi,
@@ -262,6 +269,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     auth.user, auth.error, auth.googleAuth,
     products.products, products.fetchProducts, products.adminAddProduct, products.adminEditProduct,
     blogs.blogs, blogs.adminAddBlog, blogs.adminEditBlog, blogs.adminDeleteBlog,
+    blogs.blogCategories, blogs.adminAddBlogCategory, blogs.adminDeleteBlogCategory,
     coupons.coupons, coupons.adminAddCoupon,
     cart.cart,
     wishlist.wishlist, wishlist.toggleWishlist, wishlist.isInWishlist,

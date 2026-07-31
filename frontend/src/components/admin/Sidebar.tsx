@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   LayoutDashboard, ShoppingBag, FolderTree, TicketPercent, Users,
   CalendarClock, Truck, Images, Package, BellRing, MessageSquare, Shield, LogOut,
-  Pin, PinOff,
+  BookOpen, Pin, PinOff,
 } from "lucide-react";
 import type { User, PermissionKey } from "../../types";
 import type { TabId } from "./AdminHeader";
@@ -20,6 +20,7 @@ const ALL_TABS: { id: TabId; label: string; Icon: typeof LayoutDashboard; permis
   { id: "reminders", label: "Medicine Reminders", Icon: BellRing, permission: "reminders" },
   { id: "reviews", label: "Reviews", Icon: MessageSquare, permission: "reviews" },
   { id: "staffManagement", label: "Staff Management", Icon: Shield, permission: "staffManagement" },
+  { id: "blogs", label: "Blogs & Articles", Icon: BookOpen, permission: "blogs" },
 ];
 
 interface SidebarProps {
@@ -37,7 +38,7 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }: Sid
     if (!tab.permission) return false;
     return user.permissions?.[tab.permission] === true;
   });
-  const [pinned, setPinned] = useState(true);
+  const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
 
   const expanded = pinned || hovered;

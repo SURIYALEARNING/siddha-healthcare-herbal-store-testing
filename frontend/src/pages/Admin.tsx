@@ -16,6 +16,7 @@ import BatchTab from "../components/admin/BatchTab";
 import ReminderTab from "../components/admin/ReminderTab";
 import ReviewTab from "../components/admin/ReviewTab";
 import StaffTab from "../components/admin/StaffTab";
+import BlogTab from "../components/admin/BlogTab";
 import type { TabId } from "../components/admin/AdminHeader";
 import type { Consultation, Product } from "../types";
 
@@ -69,7 +70,7 @@ export default function Admin() {
       orders: "orders", customers: "customers", batches: "batches",
       reminders: "reminders", reviews: "reviews", coupons: "coupons",
       carousel: "carousel", consultations: "consultations", shipping: "shipping",
-      staffManagement: "staffManagement",
+      staffManagement: "staffManagement", blogs: "blogs",
     };
     const key = permMap[tab];
     if (!key) return false;
@@ -143,6 +144,10 @@ export default function Admin() {
 
           {safeActiveTab === "staffManagement" && (
             <StaffTab />
+          )}
+
+          {safeActiveTab === "blogs" && (
+            <BlogTab />
           )}
         </div>
       </div>

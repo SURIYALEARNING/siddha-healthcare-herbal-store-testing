@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from './database.js';
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import passport from "./config/passport.js";
 
@@ -43,14 +45,31 @@ const allowedOrigins = (
 
 const corsOptions = {
   origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+    const isProduction = process.env.NODE_ENV === "production";
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(null, true); // allow all in dev
+    if (isProduction) return cb(new Error("Not allowed by CORS"));
+    return cb(null, true);
   },
   credentials: true,
 };
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
 app.use(cors(corsOptions));
+app.disable("x-powered-by");
 app.use(cookieParser());
 app.use(passport.initialize());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: "Too many attempts. Please try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/auth", authLimiter);
+app.use("/api/auth", authLimiter);
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 

@@ -13,6 +13,7 @@ const shipmentSchema = new mongoose.Schema({
     ref: "Order",
     required: true,
   },
+  shipmentId: { type: String },
   shiprocketOrderId: { type: String },
   awbCode: { type: String },
   courierName: { type: String },

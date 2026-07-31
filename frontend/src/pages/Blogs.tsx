@@ -1,17 +1,29 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { BookOpen, Search, Clock, Calendar, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { BookOpen, Search, Clock, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
 
 export default function Blogs() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { blogs } = useApp();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [carouselIndex, setCarouselIndex] = useState<Record<string, number>>({});
 
   const categories = ["All", "Daily Wellness", "Herbs Science", "Monsoon Care", "Pitha Healing"];
 
   const filteredBlogs = blogs.filter((blog) => {
-    const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          blog.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const title = getVal(blog.title, lang).toLowerCase();
+    const content = getVal(blog.content, lang).toLowerCase();
+    const matchesSearch = title.includes(searchTerm.toLowerCase()) || content.includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === "All" || blog.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
@@ -41,8 +53,65 @@ export default function Blogs() {
                   className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-emerald-100 transition-all duration-300 p-4 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-full h-44 rounded-xl overflow-hidden bg-slate-50 mb-4">
-                      <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <div className="w-full h-44 rounded-xl overflow-hidden bg-slate-50 mb-4 relative group">
+                      {blog.images && blog.images.length > 1 ? (
+                        <>
+                          <img
+                            src={blog.images[carouselIndex[blog.id] || 0]}
+                            alt={getVal(blog.title, lang)}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const current = carouselIndex[blog.id] || 0;
+                              const prev = current === 0 ? blog.images!.length - 1 : current - 1;
+                              setCarouselIndex({ ...carouselIndex, [blog.id]: prev });
+                            }}
+                            className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
+                            aria-label="Previous image"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const current = carouselIndex[blog.id] || 0;
+                              const next = current === blog.images!.length - 1 ? 0 : current + 1;
+                              setCarouselIndex({ ...carouselIndex, [blog.id]: next });
+                            }}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
+                            aria-label="Next image"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                            {blog.images.map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCarouselIndex({ ...carouselIndex, [blog.id]: i });
+                                }}
+                                className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
+                                  (carouselIndex[blog.id] || 0) === i
+                                    ? "bg-white w-3"
+                                    : "bg-white/50"
+                                }`}
+                                aria-label={`Image ${i + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={blog.image}
+                          alt={getVal(blog.title, lang)}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
                     </div>
                     
                     <div className="space-y-2">
@@ -52,25 +121,27 @@ export default function Blogs() {
                         <span className="flex items-center"><Calendar className="w-3 h-3 mr-0.5" /> {blog.date}</span>
                       </div>
 
-                      <h2 className="text-base sm:text-lg font-black text-emerald-950 leading-tight tracking-tight hover:text-siddha-dark transition-colors">
-                        {blog.title}
-                      </h2>
+                      <Link to={`/blogs/${blog.id}`} className="block hover:text-siddha-dark transition-colors">
+                        <h2 className="text-base sm:text-lg font-black text-emerald-950 leading-tight tracking-tight">
+                          {getVal(blog.title, lang)}
+                        </h2>
+                      </Link>
                       
                       <p className="text-xs text-gray-500 leading-relaxed lines-clamp-4">
-                        {blog.content}
+                        {getVal(blog.content, lang)}
                       </p>
                     </div>
                   </div>
 
                   <div className="pt-4 mt-4 border-t border-gray-50 flex justify-between items-center">
                     <span className="text-[10px] uppercase font-bold text-gray-400">By Dr. S Thirugnanasambandar</span>
-                    <button 
-                      onClick={() => alert(`Reading Mode for "${blog.title}"\n\nFull authentic article content is currently loaded. Read our specialized books at the clinic for further details!`)}
-                      className="text-xs font-bold text-siddha-dark hover:underline flex items-center space-x-0.5 p-1.5 cursor-pointer leading-none"
+                    <Link
+                      to={`/blogs/${blog.id}`}
+                      className="text-xs font-bold text-siddha-dark hover:underline flex items-center gap-0.5 p-1.5 leading-none"
                     >
                       <span>Read Full</span>
                       <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                    </Link>
                   </div>
                 </article>
               ))}

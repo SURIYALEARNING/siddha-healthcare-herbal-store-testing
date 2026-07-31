@@ -19,8 +19,15 @@ import {
   BookOpen
 } from "lucide-react";
 
+function getVal(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
+
 export default function Home({ onConsultationClick }: { onConsultationClick: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { products, blogs, addToCart, toggleWishlist, isInWishlist } = useApp();
   const navigate = useNavigate();
 
@@ -174,7 +181,7 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
                 <div className="w-full h-44 overflow-hidden rounded-xl bg-slate-100 mb-4">
                   <img
                     src={blog.image}
-                    alt={blog.title}
+                    alt={getVal(blog.title, lang)}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -184,13 +191,13 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
                     {blog.category}
                   </span>
                   <p className="text-xs text-gray-400 font-semibold">{blog.date}</p>
-                  <Link to="/blogs" className="block hover:text-siddha-dark transition-colors">
+                  <Link to={`/blogs/${blog.id}`} className="block hover:text-siddha-dark transition-colors">
                     <h3 className="text-base font-bold text-emerald-900 leading-snug">
-                      {blog.title}
+                      {getVal(blog.title, lang)}
                     </h3>
                   </Link>
                   <p className="text-xs text-gray-500 leading-relaxed lines-clamp-3">
-                    {blog.content}
+                    {getVal(blog.content, lang)}
                   </p>
                 </div>
               </div>
@@ -233,22 +240,6 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
           ))}
         </div>
       </section>
-
-      <footer className="bg-emerald-950 text-emerald-200 text-xs py-8 px-4 rounded-t-3xl border-t border-emerald-800">
-        <div className="max-w-7xl mx-auto text-center md:text-left md:flex md:items-center md:justify-between gap-6">
-          <div className="space-y-1">
-            <h4 className="text-white font-bold text-sm">{t("footer.storeName")}</h4>
-            <p className="text-emerald-300 font-light">{t("footer.storeDescription")}</p>
-          </div>
-          <div className="mt-4 md:mt-0 space-y-1">
-            <p className="text-emerald-200">Phone: +91 98765 43210</p>
-            <p className="text-emerald-200">Email: care@siddhahealthcare.in</p>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto text-center border-t border-emerald-900/50 mt-6 pt-4 text-[11px] text-emerald-400">
-          {t("footer.copyrightText")}
-        </div>
-      </footer>
 
     </div>
   );

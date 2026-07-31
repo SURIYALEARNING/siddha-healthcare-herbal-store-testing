@@ -20,6 +20,7 @@ export default function ShippingTab() {
   const [stats, setStats] = useState<ShippingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [activeView, setActiveView] = useState<"new" | "ready">("new");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -41,6 +42,11 @@ export default function ShippingTab() {
     loadData();
   }, [loadData]);
 
+  const filteredOrders = orders.filter((o) => {
+    if (activeView === "new") return !o.currentStatus || o.currentStatus === "Pending";
+    return o.currentStatus === "Ready To Ship";
+  });
+
   const handleConfirmOrder = async (orderId: string) => {
     await confirmOrderApi(orderId);
     showSuccess("Confirmed", "Order confirmed for shipping.");
@@ -52,8 +58,9 @@ export default function ShippingTab() {
       showSuccess("Shiprocket", "Shiprocket order created.");
       await loadData();
       return res.shipmentId;
-    } catch {
-      showError("Shiprocket Error", "Failed to create Shiprocket order.");
+    } catch (err: any) {
+      const detail = err?.response?.data?.error || err?.response?.data?.detail?.message || err?.message || "";
+      showError("Shiprocket Error", detail || "Failed to create Shiprocket order.");
       return null;
     }
   };
@@ -78,10 +85,11 @@ export default function ShippingTab() {
 
   return (
     <div className="space-y-6">
-      <ShippingDashboard stats={stats} />
+      <ShippingDashboard stats={stats} activeView={activeView} onViewChange={setActiveView} />
       <ShippingTable
-        orders={orders}
+        orders={filteredOrders}
         loading={loading}
+        activeView={activeView}
         onConfirmOrder={handleConfirmOrder}
         onMarkPacked={handleMarkPacked}
         onCreateShiprocketOrder={handleCreateShiprocketOrder}

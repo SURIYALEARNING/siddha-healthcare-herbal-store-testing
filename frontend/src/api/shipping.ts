@@ -19,7 +19,12 @@ export const markPackedApi = async (orderId: string, dimensions: { length: numbe
   await client.post("/api/admin/shipping/mark-packed", { orderId, ...dimensions });
 };
 
-export const fetchPickupLocationsApi = async (): Promise<{ name: string; address: string; email: string; phone: string }[]> => {
+export const syncPickupLocationsApi = async (): Promise<any> => {
+  const res = await client.post("/api/admin/shipping/sync-pickup-locations");
+  return res.data;
+};
+
+export const fetchPickupLocationsApi = async (): Promise<{ pickup_location: string; address: string; email: string; phone: string; name: string }[]> => {
   try {
     const res = await client.get("/api/admin/shipping/pickup-locations");
     return res.data;

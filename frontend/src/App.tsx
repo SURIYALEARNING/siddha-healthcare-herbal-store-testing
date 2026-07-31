@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
 import { ToastProvider, useToastContext } from "./context/ToastContext";
 import ToastContainer from "./components/Toast/ToastContainer";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
 import SiddhaAIChatbot from "./components/SiddhaAIChatbot";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +19,7 @@ import Auth from "./pages/Auth";
 import Account from "./pages/Account";
 import TrackOrder from "./pages/TrackOrder";
 import Blogs from "./pages/Blogs";
+import BlogDetails from "./pages/BlogDetails";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
@@ -179,10 +182,14 @@ function ConsultationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 function MainAppContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const { toasts, removeToast } = useToastContext();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-gray-800">
       
+      <ScrollToTop />
+
       {/* Dynamic Header navbar */}
       <Navbar onConsultationClick={() => setModalOpen(true)} />
 
@@ -199,12 +206,15 @@ function MainAppContent() {
           <Route path="/account" element={<Account />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:id" element={<BlogDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/orders-history" element={<OrdersHistory />} />
         </Routes>
       </main>
+
+      {!isAdminRoute && <Footer />}
 
       {/* Dynamic Appointment Modal dialog triggerable from anywhere */}
       <ConsultationModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />

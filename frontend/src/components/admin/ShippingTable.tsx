@@ -8,6 +8,7 @@ import ShiprocketOrderModal from "./ShiprocketOrderModal";
 interface ShippingTableProps {
   orders: Order[];
   loading: boolean;
+  activeView: "new" | "ready";
   onConfirmOrder: (orderId: string) => Promise<void>;
   onMarkPacked: (orderId: string) => Promise<void>;
   onCreateShiprocketOrder: (orderId: string, formData?: Record<string, any>) => Promise<string | null>;
@@ -29,7 +30,7 @@ function statusWeight(s: string): number {
 }
 
 export default function ShippingTable({
-  orders, loading, onConfirmOrder, onMarkPacked, onCreateShiprocketOrder,
+  orders, loading, activeView, onConfirmOrder, onMarkPacked, onCreateShiprocketOrder,
   onGenerateAWB, onRequestPickup, onViewDetails, onRefresh,
 }: ShippingTableProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -65,6 +66,10 @@ export default function ShippingTable({
     setFormSubmitting(true);
     try {
       await doAction(`confirm-${formOrder.id}`, () => onConfirmOrder(formOrder.id));
+    } catch {
+      return;
+    }
+    try {
       const shipmentId = await onCreateShiprocketOrder(formOrder.id, data);
       if (shipmentId) {
         await doAction(`awb-${formOrder.id}`, () => onGenerateAWB(formOrder.id, shipmentId));
@@ -81,14 +86,16 @@ export default function ShippingTable({
   };
 
   const handleGenerateAWB = async (order: Order) => {
-    if (order.shiprocketOrderId) {
-      await doAction(`awb-${order.id}`, () => onGenerateAWB(order.id, order.shiprocketOrderId!));
+    const sid = order.shiprocketDetails?.shipmentId || order.shiprocketOrderId;
+    if (sid) {
+      await doAction(`awb-${order.id}`, () => onGenerateAWB(order.id, sid));
     }
   };
 
   const handleRequestPickup = async (order: Order) => {
-    if (order.shiprocketOrderId) {
-      await doAction(`pickup-${order.id}`, () => onRequestPickup(order.id, [order.shiprocketOrderId!]));
+    const sid = order.shiprocketDetails?.shipmentId || order.shiprocketOrderId;
+    if (sid) {
+      await doAction(`pickup-${order.id}`, () => onRequestPickup(order.id, [sid]));
     }
   };
 
@@ -195,7 +202,7 @@ export default function ShippingTable({
                   </td>
                   <td className="py-3 text-right">
                     <div className="flex items-center justify-end gap-1 flex-wrap">
-                      {sw <= statusWeight("PAID") && (
+                      {activeView === "new" && sw <= statusWeight("PAID") && (
                         <button
                           onClick={() => setFormOrder(order)}
                           className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
@@ -203,40 +210,22 @@ export default function ShippingTable({
                           <CheckCircle className="w-3 h-3" /> Confirm
                         </button>
                       )}
-                      {sw === statusWeight("CONFIRMED") && (
-                        <button
-                          onClick={() => handleMarkPacked(order.id)}
-                          disabled={isDoing("pack")}
-                          className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
-                        >
-                          {isDoing("pack") ? "..." : <><PackageCheck className="w-3 h-3" /> Pack</>}
-                        </button>
-                      )}
-                      {sw === statusWeight("PACKED") && (
-                        <button
-                          onClick={() => handleGenerateAWB(order)}
-                          disabled={isDoing("awb")}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
-                        >
-                          {isDoing("awb") ? "..." : <><QrCode className="w-3 h-3" /> AWB</>}
-                        </button>
-                      )}
-                      {sw === statusWeight("PICKUP_REQUESTED") && (
-                        <button
-                          onClick={() => handleRequestPickup(order)}
-                          disabled={isDoing("pickup")}
-                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
-                        >
-                          {isDoing("pickup") ? "..." : <><MapPin className="w-3 h-3" /> Pickup</>}
-                        </button>
-                      )}
-                      {sw >= statusWeight("PICKED_UP") && (
-                        <button
-                          onClick={() => onViewDetails(order)}
-                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3" /> View
-                        </button>
+                      {activeView === "ready" && (
+                        <>
+                          <button
+                            onClick={() => onViewDetails(order)}
+                            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
+                          >
+                            <Eye className="w-3 h-3" /> View
+                          </button>
+                          <button
+                            onClick={() => handleRequestPickup(order)}
+                            disabled={isDoing("pickup")}
+                            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
+                          >
+                            {isDoing("pickup") ? "..." : <><MapPin className="w-3 h-3" /> Pickup</>}
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>

@@ -5,7 +5,7 @@ import { useApp } from "../context/AppContext";
 import OrdersHistoryList from "../components/account/OrdersHistory";
 
 export default function OrdersHistory() {
-  const { user, orders } = useApp();
+  const { user, orders, loading } = useApp();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +24,20 @@ export default function OrdersHistory() {
         <span>Back to Account</span>
       </Link>
 
-      <OrdersHistoryList orders={orders} />
+      {loading ? (
+        <div className="space-y-4">
+          <div className="h-5 w-40 bg-gray-100 rounded animate-pulse" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="border border-gray-100 rounded-2xl p-5 space-y-3 animate-pulse">
+              <div className="h-3 bg-gray-100 rounded w-60" />
+              <div className="h-3 bg-gray-100 rounded w-40" />
+              <div className="h-8 bg-gray-100 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <OrdersHistoryList orders={orders} />
+      )}
     </div>
   );
 }

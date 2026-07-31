@@ -13,7 +13,7 @@ const verifyToken = (req, res, next) => {
 
 
 
-    if (err) return res.status(403).json({ message: "Invalid or Expired Token" });
+    if (err) return res.status(401).json({ message: "Invalid or Expired Token" });
     req.user = decodedUser; // Contains { id, isAdmin }
     next();
   });

@@ -20,19 +20,22 @@ export async function getAllProducts(req, res) {
     
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Server Error", error: error.message });
+    res.status(500).json({ message: "Server Error" });
   }
 }
 
 export async function getProductById(req, res) {
   try {
+    if (!req.params.id || req.params.id.length !== 24) {
+      return res.status(400).json({ error: "Invalid product ID format." });
+    }
     const product = await Product.findById(req.params.id).lean();
     if (!product || product.isActive === false) return res.status(404).json({ error: "Product not found" });
     product.stock = await getProductStock(product._id);
     const latestReviews = await getLatestReviews(product._id, 3);
     res.status(200).json({ ...product, latestReviews });
   } catch (error) {
-    res.status(500).json({ message: "Server Error", error: error.message });
+    res.status(500).json({ message: "Server Error" });
   }
 }
 
@@ -45,8 +48,8 @@ export async function createProduct(req, res) {
 
     const productData = {
       name: typeof name === "string" ? { en: name, ta: "" } : name,
-      price: Number(price),
-      discountPrice: discountPrice ? Number(discountPrice) : Number(price),
+      price: Math.max(0, Number(price)),
+      discountPrice: discountPrice ? Math.max(0, Number(discountPrice)) : Math.max(0, Number(price)),
       category,
       isActive: true,
     };
@@ -94,7 +97,7 @@ export async function createProduct(req, res) {
     const newProduct = await Product.create(productData);
     res.status(201).json({ message: "Product created successfully", product: newProduct });
   } catch (error) {
-    res.status(500).json({ error: "Server Error", details: error.message });
+    res.status(500).json({ error: "Server Error" });
   }
 }
 
@@ -126,7 +129,7 @@ export async function updateProduct(req, res) {
     if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
     res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
   } catch (error) {
-    res.status(500).json({ error: "Server Error", details: error.message });
+    res.status(500).json({ error: "Server Error" });
   }
 }
 
@@ -144,6 +147,6 @@ export async function deleteProduct(req, res) {
 
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Server Error", details: error.message });
+    res.status(500).json({ error: "Server Error" });
   }
 }

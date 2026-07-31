@@ -65,7 +65,7 @@ export const registerStep1 = async (req, res) => {
 
         res.status(200).json({ message: "OTP sent to your email successfully!" });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "Registration failed. Please try again." });
     }
 };
 
@@ -84,7 +84,7 @@ export const verifyOTP = async (req, res) => {
 
         res.status(200).json({ message: "OTP verified successfully. Please provide address details." });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "Verification failed. Please try again." });
     }
 };
 
@@ -111,6 +111,6 @@ export const finalRegister = async (req, res) => {
 
         res.status(201).json({ message: "User registered successfully!", user: newUser });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "Registration failed. Please try again." });
     }
 };

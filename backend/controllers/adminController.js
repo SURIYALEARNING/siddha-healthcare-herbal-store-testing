@@ -146,7 +146,7 @@ export async function updateOrderStatus(req, res) {
     res.json({ message: "Order status updated!", order: updated });
   } catch (error) {
     console.error("Failed to update order status:", error);
-    res.status(500).json({ error: error.message || "Failed to update order status." });
+    res.status(500).json({ error: "Failed to update order status." });
   }
 }
 
@@ -182,7 +182,7 @@ export async function updateManualShippingStatus(req, res) {
     );
     res.json({ message: "Shipping status updated!", order: updated });
   } catch (error) {
-    res.status(500).json({ error: error.message || "Failed to update shipping status." });
+    res.status(500).json({ error: "Failed to update shipping status." });
   }
 }
 

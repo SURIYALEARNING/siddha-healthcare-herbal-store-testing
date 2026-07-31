@@ -288,6 +288,8 @@ export interface TrackingEntry {
 
 export interface ShippingStats {
   total: number;
+  newOrders: number;
+  readyToShip: number;
   paid: number;
   confirmed: number;
   packed: number;
@@ -300,12 +302,13 @@ export interface ShippingStats {
 
 export interface Blog {
   id: string;
-  title: string;
-  content: string;
+  title: Translation | string;
+  content: Translation | string;
   category: string;
   author: string;
   date: string;
   image: string;
+  images?: string[];
   reads: number;
 }
 
@@ -365,6 +368,7 @@ export interface PincodeResponse {
   courier?: { name: string; company: string };
   pincode?: string;
   address?: string;
+  cached?: boolean;
 }
 
 export interface Batch {
@@ -398,7 +402,7 @@ export interface StockAdjustment {
 export type PermissionKey =
   | "dashboard" | "products" | "categories" | "orders" | "customers"
   | "batches" | "reminders" | "reviews" | "coupons" | "carousel"
-  | "consultations" | "shipping" | "staffManagement";
+  | "consultations" | "shipping" | "staffManagement" | "blogs";
 
 export type Permissions = Record<PermissionKey, boolean>;
 

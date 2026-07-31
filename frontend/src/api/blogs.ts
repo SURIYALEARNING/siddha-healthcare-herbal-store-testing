@@ -2,6 +2,11 @@ import client from "./client";
 import { Blog } from "../types";
 import { handleApiError } from "./errors";
 
+export const fetchBlogByIdApi = async (id: string): Promise<Blog> => {
+  const res = await client.get(`/api/blogs/${id}`);
+  return res.data;
+};
+
 export const fetchBlogsApi = async (): Promise<Blog[]> => {
   try {
     const res = await client.get("/api/blogs");
@@ -33,4 +38,18 @@ export const adminDeleteBlogApi = async (blogId: string): Promise<void> => {
   } catch (error) {
     handleApiError("adminDeleteBlogApi", error);
   }
+};
+
+export const fetchBlogCategoriesApi = async (): Promise<{ _id: string; name: string }[]> => {
+  const res = await client.get("/api/blogs/categories");
+  return res.data;
+};
+
+export const addBlogCategoryApi = async (name: string): Promise<{ _id: string; name: string }> => {
+  const res = await client.post("/api/blogs/categories", { name });
+  return res.data;
+};
+
+export const deleteBlogCategoryApi = async (id: string): Promise<void> => {
+  await client.delete(`/api/blogs/categories/${id}`);
 };

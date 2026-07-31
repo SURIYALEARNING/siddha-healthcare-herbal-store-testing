@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Package, Truck, Ruler, Weight, MapPin, User, Phone, Mail, Map, CreditCard } from "lucide-react";
 import type { Order } from "../../types";
-import { fetchPickupLocationsApi } from "../../api/shipping";
+import { fetchPickupLocationsApi, syncPickupLocationsApi } from "../../api/shipping";
 
 interface ShiprocketFormData {
   pickup_location: string;
@@ -62,14 +62,15 @@ export default function ShiprocketOrderModal({ order, submitting, onClose, onSub
   });
 
   const [courierType, setCourierType] = useState("SR_STANDARD");
-  const [pickupOptions, setPickupOptions] = useState<{ name: string }[]>([]);
+  const [pickupOptions, setPickupOptions] = useState<{ pickup_location: string; name: string }[]>([]);
+  const [syncing, setSyncing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchPickupLocationsApi().then((list) => {
       setPickupOptions(list);
       if (list.length > 0) {
-        setForm((prev) => ({ ...prev, pickup_location: list[0].name }));
+        setForm((prev) => ({ ...prev, pickup_location: list[0].pickup_location || list[0].name || "" }));
       }
     });
   }, []);
@@ -160,13 +161,37 @@ export default function ShiprocketOrderModal({ order, submitting, onClose, onSub
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
             <div>
               <p className={labelClass}><MapPin className="w-3 h-3 inline mr-1" />Pickup Location *</p>
-              {pickupOptions.length > 0 ? (
-                <select value={form.pickup_location} onChange={(e) => update("pickup_location", e.target.value)} className={inputClass}>
-                  {pickupOptions.map((p) => (<option key={p.name} value={p.name}>{p.name}</option>))}
-                </select>
-              ) : (
-                <input type="text" value={form.pickup_location} onChange={(e) => update("pickup_location", e.target.value)} placeholder="e.g. Primary" className={inputClass} />
-              )}
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  {pickupOptions.length > 0 ? (
+                    <select value={form.pickup_location} onChange={(e) => update("pickup_location", e.target.value)} className={inputClass}>
+                      {pickupOptions.map((p) => (<option key={p.pickup_location || p.name} value={p.pickup_location || p.name}>{p.pickup_location || p.name}</option>))}
+                    </select>
+                  ) : (
+                    <input type="text" value={form.pickup_location} onChange={(e) => update("pickup_location", e.target.value)} placeholder="e.g. Primary" className={inputClass} />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setSyncing(true);
+                    try {
+                      const res = await syncPickupLocationsApi();
+                      const list = await fetchPickupLocationsApi();
+                      setPickupOptions(list);
+                      if (list.length > 0) {
+                        setForm((prev) => ({ ...prev, pickup_location: list[0].pickup_location || list[0].name || "" }));
+                      }
+                    } finally {
+                      setSyncing(false);
+                    }
+                  }}
+                  disabled={syncing}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-[10px] font-bold cursor-pointer transition-colors shrink-0"
+                >
+                  {syncing ? "..." : "Sync"}
+                </button>
+              </div>
               {errors.pickup_location && <p className={errorClass}>{errors.pickup_location}</p>}
             </div>
             <div>

@@ -66,7 +66,7 @@ export async function createBatch(req, res) {
     if (error.code === 11000) {
       return res.status(400).json({ error: "Batch number already exists." });
     }
-    res.status(500).json({ error: "Failed to create batch.", details: error.message });
+    res.status(500).json({ error: "Failed to create batch." });
   }
 }
 
@@ -114,7 +114,7 @@ export async function updateBatch(req, res) {
     if (error.code === 11000) {
       return res.status(400).json({ error: "Batch number already exists." });
     }
-    res.status(500).json({ error: "Failed to update batch.", details: error.message });
+    res.status(500).json({ error: "Failed to update batch." });
   }
 }
 
@@ -158,7 +158,7 @@ export async function adjustStock(req, res) {
 
     res.json({ message: "Stock adjusted successfully.", batch });
   } catch (error) {
-    res.status(500).json({ error: "Failed to adjust stock.", details: error.message });
+    res.status(500).json({ error: "Failed to adjust stock." });
   }
 }
 

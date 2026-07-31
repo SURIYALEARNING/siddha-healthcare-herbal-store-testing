@@ -24,6 +24,7 @@ const DEFAULT_PERMISSIONS = {
   consultations: false,
   shipping: false,
   staffManagement: false,
+  blogs: false,
 };
 
 // Main User Model
@@ -42,6 +43,15 @@ const userSchema = new mongoose.Schema({
     state: { type: String, default: "" },
     district: { type: String, default: "" },
     pincode: { type: String, default: "" },
+  },
+  pincodeAvailability: {
+    pincode: { type: String, default: "" },
+    available: { type: Boolean },
+    estimatedDays: { type: Number },
+    codAvailable: { type: Boolean },
+    prepaidAvailable: { type: Boolean },
+    courier: { type: mongoose.Schema.Types.Mixed },
+    checkedAt: { type: Date },
   }
 }, { timestamps: true });
 

@@ -1,0 +1,159 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix backend
+      - name: Lint Frontend
+        run: npm run lint --prefix frontend
+        continue-on-error: true
+      - name: Lint Backend
+        run: npm run lint --prefix backend
+        continue-on-error: true
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix frontend
+      - name: Run Frontend Unit Tests
+        run: npm run test:coverage --prefix frontend
+      - name: Upload Frontend Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+      - name: Check Coverage Threshold
+        run: |
+          COVERAGE=$(cat frontend/coverage/coverage-summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['total']['lines']['pct'])")
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "Frontend coverage $COVERAGE% is below 90% threshold"
+            exit 1
+          fi
+          echo "Frontend coverage: $COVERAGE%"
+
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix backend
+      - name: Run Backend Unit Tests
+        run: npm run test:coverage --prefix backend
+      - name: Upload Backend Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+      - name: Check Coverage Threshold
+        run: |
+          COVERAGE=$(cat backend/coverage/coverage-summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['total']['lines']['pct'])")
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "Backend coverage $COVERAGE% is below 90% threshold"
+            exit 1
+          fi
+          echo "Backend coverage: $COVERAGE%"
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix backend
+      - name: Run Integration Tests
+        run: npm run test:integration --prefix backend
+        env:
+          MONGODB_ATLES: mongodb-memory-server
+
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix backend
+      - name: Run Security Tests
+        run: npm run test:security --prefix backend
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix backend
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+        working-directory: frontend
+      - name: Start Backend
+        run: |
+          echo "MONGODB_ATLES=mongodb://localhost:27017/test" > backend/.env
+          npm run dev --prefix backend &
+          sleep 5
+      - name: Start Frontend
+        run: |
+          npm run dev --prefix frontend &
+          sleep 5
+      - name: Run E2E Tests
+        run: npx playwright test
+        working-directory: frontend
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [quality, frontend-tests, backend-tests, integration-tests, security-tests, e2e-tests]
+    if: always()
+    steps:
+      - name: Check Status
+        run: |
+          echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+          echo "Backend Tests: ${{ needs.backend-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "Security Tests: ${{ needs.security-tests.result }}"
+          echo "E2E Tests: ${{ needs.e2e-tests.result }}"

@@ -12,12 +12,18 @@ import {
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
 
-  const fetchUserOrders = useCallback(async () => {
-    try {
-      const data = await fetchUserOrdersApi();
-      setOrders(data);
-    } catch (e) {
-      console.error("Failed to load orders:", e);
+  const fetchUserOrders = useCallback(async (retries = 2) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const data = await fetchUserOrdersApi();
+        setOrders(data);
+        return;
+      } catch (e) {
+        console.error(`Failed to load orders (attempt ${attempt + 1}/${retries + 1}):`, e);
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
     }
   }, []);
 

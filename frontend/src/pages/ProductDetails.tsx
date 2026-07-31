@@ -86,14 +86,15 @@ export default function ProductDetails() {
   }, [product?.visibility]);
 
   useEffect(() => {
-    if (user && user.address?.pincode) {
-      setPincodeLoading(true);
-      checkMyAddressApi()
-        .then((res) => setPincodeResult(res))
-        .catch(() => setPincodeError(t('productDetails.deliveryCheckFailed')))
-        .finally(() => setPincodeLoading(false));
-    }
-  }, [user?.address?.pincode]);
+    if (!user) return;
+    setPincodeLoading(true);
+    checkMyAddressApi()
+      .then((res) => setPincodeResult(res))
+      .catch(() => {
+        // No cached data and no saved address — ignore silently
+      })
+      .finally(() => setPincodeLoading(false));
+  }, [user?.id]);
 
   const handleCheckPincode = async () => {
     const pin = pincodeInput.trim();
@@ -212,7 +213,20 @@ export default function ProductDetails() {
               {t('Delivery To')}
             </div>
 
-            {user?.address?.pincode ? (
+            {pincodeResult && user && !user?.address?.pincode ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-gray-800">
+                  {t('Delivering To')} {pincodeResult.pincode}
+                </p>
+                <DeliveryResult result={pincodeResult} />
+                <button
+                  onClick={() => { setPincodeResult(null); setPincodeInput(""); }}
+                  className="text-[10px] text-siddha-dark underline cursor-pointer"
+                >
+                  {t('Check different pincode')}
+                </button>
+              </div>
+            ) : user?.address?.pincode ? (
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-gray-800">
                   {t('Delivering To')} {user.address.pincode}
@@ -252,13 +266,10 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {pincodeError && !user?.address?.pincode && (
+            {pincodeError && !user?.address?.pincode && !pincodeResult && (
               <p className="text-xs text-rose-600">{pincodeError}</p>
             )}
 
-            {pincodeResult && !user?.address?.pincode && (
-              <DeliveryResult result={pincodeResult} />
-            )}
           </div>
         </div>
       </div>

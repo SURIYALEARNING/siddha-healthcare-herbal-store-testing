@@ -60,3 +60,14 @@ body {
   from { transform: translateX(0); opacity: 1; }
   to   { transform: translateX(-120%); opacity: 0; }
 }
+
+.footer-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.footer-fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

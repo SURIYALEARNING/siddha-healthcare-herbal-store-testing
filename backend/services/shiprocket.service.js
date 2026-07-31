@@ -1,4 +1,5 @@
 import ShiprocketAuth from "../models/ShiprocketAuth.js";
+import ShiprocketSettings from "../models/ShiprocketSettings.js";
 
 const SR_API = process.env.SHIPROCKET_API_URL || "https://apiv2.shiprocket.in/v1/external";
 
@@ -21,26 +22,7 @@ async function saveTokenToDb(token) {
   await ShiprocketAuth.deleteMany({});
   const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000);
 
-  let pickupLocations = [];
-  try {
-    const res = await fetch(`${SR_API}/settings/company/pickup`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const companies = data?.data?.pickup_locations || data?.pickup_locations || [];
-      pickupLocations = companies.map((c) => ({
-        name: c.pickup_location || c.nickname || c.name || "Primary",
-        address: c.address || "",
-        email: c.email || "",
-        phone: c.phone || "",
-      }));
-    }
-  } catch {
-    // pickup fetch is best-effort
-  }
-
-  await ShiprocketAuth.create({ token, expiresAt, pickupLocations });
+  await ShiprocketAuth.create({ token, expiresAt });
   cachedToken = token;
   cachedExpiry = expiresAt.getTime();
 }
@@ -146,6 +128,51 @@ export async function cancelShipment(shipmentIds) {
 
 export async function getPickupLocations() {
   return makeRequest("/settings/company/pickup");
+}
+
+export async function syncPickupLocations() {
+  try {
+    const data = await getPickupLocations();
+    const addresses = data?.data?.shipping_address || data?.shipping_address || [];
+    const companyName = data?.data?.company_name || data?.company_name || "";
+
+    await ShiprocketSettings.deleteMany({});
+    await ShiprocketSettings.create({
+      pickupLocations: addresses,
+      companyName,
+      lastSyncedAt: new Date(),
+    });
+
+    return { success: true, count: addresses.length, companyName };
+  } catch (error) {
+    console.error("Failed to sync pickup locations:", error);
+    throw error;
+  }
+}
+
+export async function getStoredPickupLocations() {
+  try {
+    const settings = await ShiprocketSettings.findOne().sort({ createdAt: -1 }).lean();
+    if (settings && settings.pickupLocations && settings.pickupLocations.length > 0) {
+      return settings.pickupLocations.map((loc) => ({
+        id: loc.id,
+        pickup_location: loc.pickup_location,
+        address: loc.address,
+        address_2: loc.address_2,
+        city: loc.city,
+        state: loc.state,
+        country: loc.country,
+        pin_code: loc.pin_code,
+        email: loc.email,
+        phone: loc.phone,
+        name: loc.name,
+        is_primary_location: loc.is_primary_location,
+      }));
+    }
+    return [];
+  } catch {
+    return [];
+  }
 }
 
 export async function ndrAction(awb, action, comments) {
