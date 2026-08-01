@@ -3,6 +3,9 @@ import { useApp } from "../context/AppContext";
 import { useTranslation } from "react-i18next";
 import HeroCarousel from "../components/HeroCarousel";
 import ProductPromoCarousel from "../components/ProductPromoCarousel";
+import SupportCarousel from "../components/SupportCarousel";
+import {  Shield, UserCheck,} from "lucide-react";
+import Marquee from "../components/Marquee";
 import logo from '../assets/logo.png'
 import Shop from './Shop'
 import {
@@ -72,6 +75,28 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
 
       <HeroCarousel />
 
+  {/* Marquee strip under Brand section */}
+      <section className="bg-siddha-dark py-6">
+        <Marquee speed={28} gap={56}>
+          <span className="text-lg sm:text-2xl lg:text-3xl font-semibold text-white">
+            {t("home.marqueeText1")}
+          </span>
+          <Leaf className="text-green-400 w-6 h-6 sm:w-8 sm:h-8" />
+          <span className="text-lg sm:text-2xl lg:text-3xl font-semibold text-white">
+            {t("home.marqueeText2")}
+          </span>
+          <Leaf className="text-green-400 w-6 h-6 sm:w-8 sm:h-8" />
+          <span className="text-lg sm:text-2xl lg:text-3xl font-semibold text-white">
+            {t("home.marqueeText3")}
+          </span>
+          <Leaf className="text-green-400 w-6 h-6 sm:w-8 sm:h-8" />
+          <span className="text-lg sm:text-2xl lg:text-3xl font-semibold text-white">
+            {t("home.marqueeText4")}
+          </span>
+          <Leaf className="text-green-400 w-6 h-6 sm:w-8 sm:h-8" />
+        </Marquee>
+      </section>
+
       {/* Brand Logo + Quote Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
@@ -97,59 +122,32 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
         </div>
       </section>
 
-      {/* 2. WHY CHOOSE US? BENEFITS SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold font-serif text-emerald-950 tracking-tight">
-            {t("home.whyChooseUs")}
+    
+     {/* 3. SUPPORT HIGHLIGHTS CAROUSEL */}
+      <section className="w-full px-0">
+        <section className="bg-slate-50 border border-slate-100 rounded-3xl py-10 px-0 space-y-8">
+        <div className="text-center space-y-2">
+          <span className="text-xs font-bold text-siddha-dark uppercase tracking-widest block">{t("about.carouselSection")}</span>
+          <h2 className="text-2xl sm:text-3xl font-bold font-display text-emerald-950 tracking-tight">
+            {t("about.carouselHeading")}
           </h2>
-          <p className="text-sm text-gray-500 mt-2 leading-relaxed font-sans">
-            {t("home.whyChooseUsDesc")}
-          </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-[#fdfdfb] p-6 rounded-2xl border border-[#14532D]/10 hover:border-[#D4AF37]/30 transition-all text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitAyush")}</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {t("home.benefitAyushDesc")}
-            </p>
-          </div>
-
-          <div className="bg-[#fdfdfb] p-6 rounded-2xl border border-[#14532D]/10 hover:border-[#D4AF37]/30 transition-all text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
-              <Leaf className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitNatural")}</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {t("home.benefitNaturalDesc")}
-            </p>
-          </div>
-
-          <div className="bg-[#fdfdfb] p-6 rounded-2xl border border-[#14532D]/10 hover:border-[#D4AF37]/30 transition-all text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
-              <HelpCircle className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitAI")}</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {t("home.benefitAIDesc")}
-            </p>
-          </div>
-
-          <div className="bg-[#fdfdfb] p-6 rounded-2xl border border-[#14532D]/10 hover:border-[#D4AF37]/30 transition-all text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 bg-siddha-light rounded-full flex items-center justify-center text-siddha-dark mx-auto">
-              <Clock className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-emerald-950 text-sm font-serif">{t("home.benefitOnline")}</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {t("home.benefitOnlineDesc")}
-            </p>
-          </div>
-        </div>
+        <SupportCarousel
+          items={[
+            { id: "authentic", title: t("about.authenticTitle"), description: t("about.authenticDesc"), icon: <Leaf className="w-8 h-8" /> },
+            { id: "certified", title: t("about.certifiedTitle"), description: t("about.certifiedDesc"), icon: <Award className="w-8 h-8" /> },
+            { id: "metal-free", title: t("about.metalFreeTitle"), description: t("about.metalFreeDesc"), icon: <Shield className="w-8 h-8" /> },
+            { id: "telemedicine", title: t("about.telemedicineTitle"), description: t("about.telemedicineDesc"), icon: <UserCheck className="w-8 h-8" /> },
+            { id: "care", title: t("about.familyCareTitle"), description: t("about.familyCareDesc"), icon: <Heart className="w-8 h-8" /> },
+          ]}
+          cardWidth={380}
+          cardHeight={190}
+          speed={40}
+          pauseOnHover
+        />
+        </section>
       </section>
+     
 
       <ProductPromoCarousel />
 

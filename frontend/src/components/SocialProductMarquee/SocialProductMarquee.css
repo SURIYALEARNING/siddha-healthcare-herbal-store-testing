@@ -1,0 +1,22 @@
+.social-product-marquee {
+  display: flex;
+  width: max-content;
+  animation: social-product-marquee var(--speed) linear infinite;
+  will-change: transform;
+}
+
+@keyframes social-product-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-product-marquee {
+    animation: none;
+  }
+}

@@ -72,7 +72,7 @@ export default function Shop() {
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1 px-4 py-3 bg-white border border-gray-150 rounded-xl text-xs font-medium text-gray-600 active:bg-gray-50 cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4" />
-                <span>{t('common.filters')}{categoryFilter !== "All" ? ` (${categoryFilter})` : ""}</span>
+                <span>{t('Sort')}{categoryFilter !== "All" ? ` (${categoryFilter})` : ""}</span>
               </button>
 
               <select

@@ -215,7 +215,7 @@ export default function Contact() {
           </div>
 
           {/* Secure iFrame Embedded Map */}
-          <div className="bg-white border border-gray-100 p-4 rounded-3xl space-y-3 shadow-xs">
+          {/* <div className="bg-white border border-gray-100 p-4 rounded-3xl space-y-3 shadow-xs">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block pl-1.5">Direct Clinic Location Map:</h4>
             
             <div className="w-full h-52 rounded-2xl overflow-hidden border border-gray-150">
@@ -228,7 +228,7 @@ export default function Contact() {
                 referrerPolicy="no-referrer"
               />
             </div>
-          </div>
+          </div> */}
 
         </div>
 

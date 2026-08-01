@@ -1,0 +1,15 @@
+.marquee-track {
+  animation: marquee var(--speed) linear infinite;
+  animation-direction: var(--marquee-direction, normal);
+  will-change: transform;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}

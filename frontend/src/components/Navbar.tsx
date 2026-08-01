@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
+import logo from "../assets/logo.png";
 import {
   ShoppingBag,
   Heart,
@@ -52,12 +53,17 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
 
           {/* Logo Brand */}
           <Link to="/" className="flex flex-1 items-center space-x-2.5 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-siddha-dark rounded-full flex items-center justify-center shrink-0 shadow-sm">
-              <div className="text-siddha-gold text-xl sm:text-2xl font-serif">S</div>
-            </div>
+            <img
+              src={logo}
+              alt="SRILAKSHMI HERBALS ROCKFORT"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 shadow-sm"
+            />
             <div className="flex flex-col min-w-0">
-              <span className="text-siddha-dark font-serif font-bold text-lg sm:text-xl leading-none uppercase tracking-tight truncate">
-                Siddha Veda
+              <span className="text-siddha-dark font-serif font-bold uppercase tracking-tight leading-tight text-[11px] sm:text-sm lg:text-lg">
+                <span className="block sm:hidden">
+                  SRILAKSHMI HERBALS<br />ROCKFORT
+                </span>
+                <span className="hidden sm:block truncate">SRILAKSHMI HERBALS ROCKFORT</span>
               </span>
               <span className="hidden md:block text-[10px] text-siddha-dark/60 uppercase tracking-widest leading-none mt-1">
                 {t("home.heroTitle")}
