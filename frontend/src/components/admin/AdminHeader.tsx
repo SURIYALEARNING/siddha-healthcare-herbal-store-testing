@@ -1,7 +1,7 @@
 import { Database, LogOut } from "lucide-react";
 import { User } from "../../types";
 
-export type TabId = "analytics" | "products" | "categories" | "orders" | "coupons" | "consultations" | "shipping" | "carousel" | "batches" | "reminders" | "reviews" | "staffManagement" | "customers" | "blogs";
+export type TabId = "analytics" | "products" | "categories" | "orders" | "coupons" | "consultations" | "shipping" | "shippingManagement" | "carousel" | "batches" | "reminders" | "reviews" | "staffManagement" | "customers" | "blogs";
 
 interface AdminHeaderProps {
   user: User;

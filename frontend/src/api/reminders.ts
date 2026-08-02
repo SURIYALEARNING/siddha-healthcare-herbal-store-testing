@@ -31,3 +31,8 @@ export async function completeCall(id: string, payload: { callResult: string; ca
   const { data } = await client.patch(`/api/admin/reminders/${id}/call`, payload);
   return data;
 }
+
+export async function createRemindersForOrder(orderId: string) {
+  const { data } = await client.post(`/api/admin/reminders/order/${orderId}/create`);
+  return data;
+}

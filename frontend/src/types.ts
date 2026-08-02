@@ -124,6 +124,8 @@ export interface Product {
   category: Category | string;
   price: number;
   discountPrice: number;
+  productWeight?: number;
+  packedWeight?: number;
   stock: number;
   size?: Size;
   ingredients: (Translation | string)[];
@@ -134,6 +136,7 @@ export interface Product {
   tags?: (Translation | string)[];
   images: string[];
   media?: MediaItem[];
+  youtubeUrl?: string;
   reviewStats: ReviewStats;
   latestReviews?: ReviewPreview[];
   averageRating?: number;
@@ -178,11 +181,12 @@ export interface OrderItem {
   purchasedPrice?: number;
   itemTotal?: number;
   batchAllocations?: BatchAllocation[];
+  packedWeight?: number;
 }
 
 export type ShippingStatus =
   | "PAID" | "CONFIRMED" | "PACKED" | "PICKUP_REQUESTED"
-  | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY"
+  | "PICKED_UP" | "SHIPPED" | "IN_TRANSIT" | "OUT_FOR_DELIVERY"
   | "DELIVERED" | "RETURNED" | "CANCELLED";
 
 export type ShippingMethod = "SHIPROCKET" | "MANUAL";
@@ -235,6 +239,9 @@ export interface Order {
   timeline?: TimelineEvent[];
   tracking?: TrackingInfo;
   shiprocketDetails?: ShiprocketDetails;
+  packedWeight?: number;
+  shippingZone?: string;
+  courierCompanyId?: string;
   status: 'Ordered' | 'Packed' | 'Shipped' | 'Out for Delivery' | 'Delivered';
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending';
@@ -246,6 +253,10 @@ export interface Order {
   awbCode?: string;
   courierName?: string;
   trackingLink?: string;
+  courierReceiptImage?: string;
+  shippingNotes?: string;
+  packedAt?: string;
+  deliveredAt?: string;
 }
 
 export interface OrderStats {
@@ -298,6 +309,72 @@ export interface ShippingStats {
   delivered: number;
   cancelled: number;
   returned: number;
+}
+
+export interface Courier {
+  _id: string;
+  name: string;
+  logo: string;
+  description: string;
+  trackingUrl?: string;
+  isActive: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourierZone {
+  _id: string;
+  courierId: string;
+  name: string;
+  states: string[];
+  districts: string[];
+  pincodes: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourierRate {
+  _id: string;
+  zoneId: string;
+  upTo500g: number;
+  upTo1kg: number;
+  additionalKg: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RateInput {
+  upTo500g: number;
+  upTo1kg: number;
+  additionalKg: number;
+}
+
+export interface ShippingOption {
+  courierId: string;
+  courierName: string;
+  logo: string;
+  description: string;
+  isDefault: boolean;
+  zoneId: string;
+  zoneName: string;
+  charge: number;
+  rate: RateInput;
+}
+
+export interface ShippingCalculateResult {
+  success: boolean;
+  packedWeight: number;
+  options: ShippingOption[];
+  selected: ShippingOption | null;
+  courier: ShippingOption | null;
+  message?: string;
+}
+
+export interface ShippingRatesResult {
+  success: boolean;
+  results: Omit<ShippingOption, "charge">[];
+  message?: string;
 }
 
 export interface Blog {
@@ -447,3 +524,11 @@ export interface ShippingAnalytics { deliveredOrders: number; inTransitOrders: n
 export interface StaffAnalytics { totalStaff: number; activeStaff: number; staff: any[] }
 export interface Activity { type: string; message: string; detail: string; time: string }
 export interface Notification { type: string; message: string; severity: string }
+
+export type SocialPlatform = "instagram" | "youtube" | "facebook" | "tiktok";
+export interface SocialProductEntry {
+  _id?: string;
+  product: Product;
+  social: SocialPlatform;
+  url: string;
+}

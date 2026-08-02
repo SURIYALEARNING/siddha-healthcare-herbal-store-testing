@@ -72,7 +72,7 @@ export const ShopProductCard = memo(function ShopProductCard({
         <Heart className={`w-4 h-4 ${inFav ? "fill-rose-600 text-rose-600" : ""}`} />
       </button>
 
-      <div className="w-full h-44 rounded-xl bg-slate-50 overflow-hidden mb-4">
+      <div className="w-full aspect-square rounded-xl bg-slate-50 overflow-hidden mb-4">
         {p.media && p.media[0] && p.media[0].type === "video" ? (
           <video src={p.media[0].url} className="w-full h-full object-cover" />
         ) : (

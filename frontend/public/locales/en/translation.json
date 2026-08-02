@@ -165,10 +165,18 @@
       "invalidMobile": "Please specify a valid 10-digit mobile number.",
       "invalidPincode": "Please specify a valid 6-digit postal pincode.",
       "paymentFailed": "Payment verification failed. Please contact support.",
-      "paymentCancelled": "Payment cancelled. Please try again."
+      "paymentCancelled": "Payment cancelled. Please try again.",
+      "shippingUnavailable": "Shipping is not available for this address. Please try another pincode.",
+      "shippingLoading": "Calculating shipping options, please wait.",
+      "shippingRequired": "Please select a courier to continue."
     },
     "orderNow": "Order Now",
-    "proceedingPayment": "Processing Payment..."
+    "proceedingPayment": "Processing Payment...",
+    "shippingMethod": "Shipping Method",
+    "packedWeight": "Packed Weight",
+    "defaultCourier": "Default Courier",
+    "noShippingMethods": "No shipping methods available",
+    "noShippingMethodsHint": "No courier currently covers this pincode. Please try another pincode."
   },
   "footer": {
     "about": "About Us",
@@ -291,7 +299,7 @@
   },
   "home": {
     "heroTitle": "Ancient Healing for Modern Life",
-    "brandHeading": "Ayush Siddha Healthcare",
+    "brandHeading": "SRILAKSHMI HERBALS ROCKFORT",
     "brandQuote": "\"Healing the body, mind, and spirit through the ancient wisdom of Siddha medicine — restoring balance to Vatham, Pitham, and Kabham with pure, natural remedies.\"",
     "brandCertification": "— Ministry of Ayush Certified | Since 2012",
     "marqueeText1": "Nourish Your Body, Elevate Your Mind",
@@ -344,6 +352,8 @@
     "highestRating": "Highest Rating",
     "lowestRating": "Lowest Rating",
     "showingReviews": "Showing {{count}} of {{total}} reviews",
+    "productVideo": "Product Video",
+    "productVideoSub": "Watch the remedy in action",
     "shareExperience": "Share your experience",
     "noStarReviews": "No star reviews yet",
     "filteredByRating": "Filtered by {{rating}} star"

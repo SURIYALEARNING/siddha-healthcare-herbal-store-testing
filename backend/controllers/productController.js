@@ -67,6 +67,16 @@ export async function createProduct(req, res) {
       productData.expiryDuration = typeof req.body.expiryDuration === "string" ? { en: req.body.expiryDuration, ta: "" } : req.body.expiryDuration;
     }
     if (req.body.size) productData.size = req.body.size;
+    if (req.body.productWeight !== undefined) {
+      const productWeight = Math.max(0, Number(req.body.productWeight) || 0);
+      productData.productWeight = productWeight;
+    }
+    if (req.body.packedWeight !== undefined) {
+      productData.packedWeight = Math.max(0, Number(req.body.packedWeight) || 0);
+    } else if (productData.productWeight !== undefined) {
+      productData.packedWeight = productData.productWeight;
+    }
+    if (req.body.youtubeUrl) productData.youtubeUrl = req.body.youtubeUrl;
     if (req.body.isFeatured !== undefined) productData.isFeatured = req.body.isFeatured;
     if (req.body.visibility) productData.visibility = req.body.visibility;
     if (req.body.averageRating !== undefined) productData.averageRating = req.body.averageRating;

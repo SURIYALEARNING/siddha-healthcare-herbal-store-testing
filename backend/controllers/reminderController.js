@@ -1,5 +1,15 @@
 import Reminder from "../models/Reminder.js";
-import { getReminders, getTodayReminders } from "../services/reminderService.js";
+import { getReminders, getTodayReminders, maybeCreateRemindersForOrder } from "../services/reminderService.js";
+
+export async function createRemindersForOrder(req, res) {
+  try {
+    const { orderId } = req.params;
+    const reminders = await maybeCreateRemindersForOrder(orderId);
+    res.json({ success: true, count: reminders.length, reminders });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create reminders for order." });
+  }
+}
 
 export async function getAdminReminders(req, res) {
   try {

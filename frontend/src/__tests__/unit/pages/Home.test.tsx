@@ -34,7 +34,7 @@ describe('Home Page', () => {
 
   it('renders brand logo section', () => {
     renderWithProviders(<Home onConsultationClick={mockFn} />);
-    const logo = screen.getByAltText('Siddha Healthcare Logo');
+    const logo = screen.getByAltText('SRILAKSHMI HERBALS ROCKFORT Logo');
     expect(logo).toBeTruthy();
   });
 

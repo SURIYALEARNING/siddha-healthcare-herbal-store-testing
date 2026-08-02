@@ -46,6 +46,16 @@ const orderSchema = new mongoose.Schema(
     deliveryCharges: { type: Number, default: 0 },
     total: { type: Number, required: true },
     appliedCouponCode: { type: String },
+    packedWeight: { type: Number, default: 0 },
+    shippingZone: { type: String },
+    courierCompanyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Courier",
+    },
+    courierReceiptImage: { type: String, default: "" },
+    shippingNotes: { type: String, default: "" },
+    packedAt: { type: Date },
+    deliveredAt: { type: Date },
     shippingAddress: {
       address: { type: String, required: true },
       state: { type: String, required: true },
@@ -95,7 +105,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: [
         "PAID", "CONFIRMED", "PACKED", "PICKUP_REQUESTED",
-        "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY",
+        "PICKED_UP", "SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY",
         "DELIVERED", "RETURNED", "CANCELLED",
       ],
     },

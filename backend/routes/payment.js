@@ -12,12 +12,12 @@ router.get("/config", (req, res) => {
 
 router.post("/create-order", verifyToken, async (req, res) => {
   try {
-    const { items, couponCode } = req.body;
+    const { items, couponCode, shippingAddress, courierId } = req.body;
     if (!items?.length) {
       return res.status(400).json({ error: "Items are required to calculate payment." });
     }
 
-    const calculated = await calculateOrder({ items, couponCode });
+    const calculated = await calculateOrder({ items, couponCode, shippingAddress, courierId });
 
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
@@ -30,7 +30,19 @@ router.post("/create-order", verifyToken, async (req, res) => {
       receipt: `receipt_${Date.now()}`,
     };
     const order = await razorpay.orders.create(options);
-    res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
+    res.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      subtotal: calculated.subtotal,
+      couponDiscount: calculated.couponDiscount,
+      deliveryCharges: calculated.deliveryCharges,
+      packedWeight: calculated.packedWeight,
+      shippingZone: calculated.shippingZone,
+      shippingCourierId: calculated.shippingCourierId,
+      shippingCourierName: calculated.shippingCourierName,
+      total: calculated.total,
+    });
   } catch (error) {
     console.error("Razorpay order creation failed:", error);
     res.status(500).json({ error: error.message || "Failed to create payment order" });

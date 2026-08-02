@@ -41,7 +41,7 @@ interface AppContextType {
   updateUserProfile: (fullName: string, mobileNumber: string, address: Address) => Promise<boolean>;
   applyCouponCode: (code: string) => Promise<boolean>;
   removeCoupon: () => void;
-  submitOrder: (shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string, razorpayPaymentId?: string) => Promise<Order | null>;
+  submitOrder: (shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string, razorpayPaymentId?: string, courierId?: string) => Promise<Order | null>;
   trackOrder: (orderId: string) => Promise<Order | null>;
   bookConsultation: (fullName: string, mobileNumber: string, email: string, date: string, time: string, healthIssues: string) => Promise<boolean>;
   refreshProducts: () => Promise<void>;
@@ -167,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const submitOrder = useCallback(async (
     shippingAddress: Address, mobileNumber: string, email: string, fullName: string, paymentMethod: string,
-    razorpayPaymentId?: string
+    razorpayPaymentId?: string, courierId?: string
   ): Promise<Order | null> => {
     if (!auth.user) return null;
     try {
@@ -178,6 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         shippingAddress, mobileNumber, email, fullName, paymentMethod,
         couponCode: activeCoupon?.code,
         ...(razorpayPaymentId && { razorpayPaymentId }),
+        ...(courierId && { courierId }),
       });
       cart.clearCart(!!auth.user);
       setActiveCoupon(null);

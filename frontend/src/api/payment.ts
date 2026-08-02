@@ -5,6 +5,14 @@ interface CreateOrderResponse {
   orderId: string;
   amount: number;
   currency: string;
+  subtotal: number;
+  couponDiscount: number;
+  deliveryCharges: number;
+  packedWeight: number;
+  shippingZone?: string;
+  shippingCourierId?: string;
+  shippingCourierName?: string;
+  total: number;
 }
 
 interface VerifyResponse {
@@ -28,6 +36,8 @@ export const fetchRazorpayConfigApi = async (): Promise<ConfigResponse> => {
 export const createRazorpayOrderApi = async (payload: {
   items: { productId: string; quantity: number }[];
   couponCode?: string;
+  shippingAddress?: { address: string; state: string; district: string; pincode: string };
+  courierId?: string;
 }): Promise<CreateOrderResponse> => {
   try {
     const res = await client.post("/api/payment/create-order", payload);

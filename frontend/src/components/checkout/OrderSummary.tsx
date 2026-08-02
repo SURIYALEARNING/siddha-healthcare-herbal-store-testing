@@ -6,6 +6,9 @@ interface OrderSummaryProps {
   subtotal: number;
   discountAmount: number;
   deliveryCharges: number;
+  shippingCharge: number;
+  packedWeight: number;
+  shippingCourierName?: string;
   total: number;
   hasCoupon: boolean;
   orderSubmitting: boolean;
@@ -13,7 +16,8 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({
-  cart, subtotal, discountAmount, deliveryCharges, total, hasCoupon, orderSubmitting, paymentMethod,
+  cart, subtotal, discountAmount, deliveryCharges, shippingCharge, packedWeight, shippingCourierName,
+  total, hasCoupon, orderSubmitting, paymentMethod,
 }: OrderSummaryProps) {
   const { t } = useTranslation();
   const isRazorpay = paymentMethod !== "Cash on Delivery";
@@ -44,6 +48,13 @@ export default function OrderSummary({
           <span className="text-gray-800 font-bold">₹{subtotal}</span>
         </div>
 
+        {packedWeight > 0 && (
+          <div className="flex justify-between">
+            <span>{t('checkout.packedWeight') || 'Packed Weight'}</span>
+            <span className="text-gray-800 font-bold">{packedWeight}g</span>
+          </div>
+        )}
+
         {hasCoupon && (
           <div className="flex justify-between text-emerald-700 font-bold">
             <span>{t('checkout.couponDeduction')}</span>
@@ -59,6 +70,11 @@ export default function OrderSummary({
             <span className="text-gray-800 font-bold">₹{deliveryCharges}</span>
           )}
         </div>
+        {shippingCourierName && (
+          <p className="text-right text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            via {shippingCourierName}
+          </p>
+        )}
 
         <div className="border-t border-gray-100 pt-4 flex justify-between text-lg font-black text-gray-800">
           <span>{t('cart.orderTotalCost')}</span>

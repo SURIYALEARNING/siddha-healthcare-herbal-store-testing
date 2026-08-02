@@ -206,6 +206,19 @@ export default function TrackOrder() {
             {order!.createdAt && (
               <div><p className="text-[9px] font-bold text-gray-400 uppercase">Ordered</p><p className="font-bold mt-0.5">{new Date(order!.createdAt).toLocaleDateString()}</p></div>
             )}
+            {(["Shipped", "Out For Delivery", "Delivered"].includes(currentStatus) && (order as any).trackingUrl) && (
+              <div className="col-span-2 sm:col-span-4 flex items-center justify-between pt-2 border-t border-gray-100">
+                <p className="text-[9px] font-bold text-gray-400 uppercase">Shipment</p>
+                <a
+                  href={(order as any).trackingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                >
+                  Track Shipment →
+                </a>
+              </div>
+            )}
           </div>
         )}
 

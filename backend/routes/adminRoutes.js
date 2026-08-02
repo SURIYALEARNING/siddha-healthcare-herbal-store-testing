@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getAdminOrders, getOrderById, updateOrderStatus,
-  updateManualShippingStatus, getOrderTimeline, getOrderStats,
+  updateManualShippingStatus, updateOrderTracking, getOrderTimeline, getOrderStats,
   getCustomerOrders, getCustomersList,
   getAdminUsers, getAdminAnalytics, trackOrder,
 } from '../controllers/adminController.js';
@@ -16,6 +16,7 @@ router.get("/orders/:id/timeline", verifyAdmin, getOrderTimeline);
 router.get("/orders/:id", verifyAdmin, getOrderById);
 router.put("/orders/:id/status", verifyAdmin, updateOrderStatus);
 router.put("/orders/:id/shipping-status", verifyAdmin, updateManualShippingStatus);
+router.put("/orders/:id/tracking", verifyAdmin, updateOrderTracking);
 
 router.get("/customers", verifyAdmin, getCustomersList);
 router.get("/customers/:userId/orders", verifyAdmin, getCustomerOrders);

@@ -1,10 +1,15 @@
 import Product from "../models/Product.js";
 import Coupon from "../models/Coupon.js";
+import {
+  calculateShipping,
+  computeTotalPackedWeight,
+  getDefaultCourier,
+} from "./shippingEngine.js";
 
 const DELIVERY_FREE_THRESHOLD = 500;
 const DELIVERY_CHARGE = 50;
 
-export async function calculateOrder({ items, couponCode }) {
+export async function calculateOrder({ items, couponCode, shippingAddress, courierId }) {
   if (!items?.length) {
     throw new Error("At least one item is required.");
   }
@@ -39,6 +44,7 @@ export async function calculateOrder({ items, couponCode }) {
       purchasedPrice: unitPrice,
       quantity: item.quantity,
       itemTotal,
+      packedWeight: Number(product.packedWeight) || 0,
     });
   }
 
@@ -71,7 +77,58 @@ export async function calculateOrder({ items, couponCode }) {
     appliedCouponCode = coupon.code;
   }
 
-  const deliveryCharges = subtotal > DELIVERY_FREE_THRESHOLD ? 0 : DELIVERY_CHARGE;
+  const packedWeight = computeTotalPackedWeight(calculatedItems);
+
+  let deliveryCharges = 0;
+  let shippingZone = null;
+  let shippingCourierId = null;
+  let shippingCourierName = null;
+  let shippingAvailable = false;
+
+  const pincode = shippingAddress?.pincode;
+
+  if (pincode && /^\d{6}$/.test(String(pincode))) {
+    const result = await calculateShipping({
+      items,
+      pincode: String(pincode),
+      state: shippingAddress.state,
+      district: shippingAddress.district,
+      courierId,
+    });
+
+    if (result.selected) {
+      deliveryCharges = result.selected.charge || 0;
+      shippingZone = result.selected.zoneName;
+      shippingCourierId = result.selected.courierId;
+      shippingCourierName = result.selected.courierName;
+      shippingAvailable = true;
+    }
+  }
+
+  if (!shippingAvailable) {
+    const fallbackCourier = await getDefaultCourier();
+    if (fallbackCourier && pincode && /^\d{6}$/.test(String(pincode))) {
+      const result = await calculateShipping({
+        items,
+        pincode: String(pincode),
+        state: shippingAddress.state,
+        district: shippingAddress.district,
+        courierId: fallbackCourier._id,
+      });
+      if (result.selected) {
+        deliveryCharges = result.selected.charge || 0;
+        shippingZone = result.selected.zoneName;
+        shippingCourierId = result.selected.courierId;
+        shippingCourierName = result.selected.courierName;
+        shippingAvailable = true;
+      }
+    }
+  }
+
+  if (!shippingAvailable) {
+    deliveryCharges = subtotal > DELIVERY_FREE_THRESHOLD ? 0 : DELIVERY_CHARGE;
+  }
+
   const total = subtotal - couponDiscount + deliveryCharges;
 
   if (total <= 0) {
@@ -84,6 +141,10 @@ export async function calculateOrder({ items, couponCode }) {
     couponDiscount,
     appliedCouponCode,
     deliveryCharges,
+    packedWeight,
+    shippingZone,
+    shippingCourierId,
+    shippingCourierName,
     total,
   };
 }

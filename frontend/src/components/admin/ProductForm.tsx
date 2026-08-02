@@ -14,6 +14,8 @@ export interface ProductFormState {
   category: string;
   price: number;
   discountPrice: number;
+  productWeight: number;
+  packedWeight: number;
   size: { value: number; unit: 'mg' | 'g' | 'kg' | 'ml' | 'L' | 'capsule' | 'tablet' | 'pcs' };
   ingredients: { en: string; ta: string }[];
   benefits: { en: string; ta: string }[];
@@ -23,6 +25,7 @@ export interface ProductFormState {
   tags: { en: string; ta: string }[];
   images: string[];
   media: MediaItem[];
+  youtubeUrl: string;
   isFeatured: boolean;
   isActive: boolean;
   visibility: "PUBLIC" | "UNLISTED";
@@ -40,6 +43,8 @@ const RESET_FORM: ProductFormState = {
   category: "",
   price: 350,
   discountPrice: 280,
+  productWeight: 0,
+  packedWeight: 0,
   size: { value: 100, unit: "ml" },
   ingredients: [],
   benefits: [],
@@ -49,6 +54,7 @@ const RESET_FORM: ProductFormState = {
   tags: [],
   images: ["https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=600"],
   media: [],
+  youtubeUrl: "",
   isFeatured: false,
   isActive: true,
   visibility: "PUBLIC",
@@ -186,6 +192,32 @@ export default function ProductForm({ state, editingId, onChange, onSubmit, onCa
         </div>
 
         <div className="grid grid-cols-2 gap-3">
+          <Field label="Product Weight (grams)">
+            <input
+              type="number"
+              min={0}
+              value={state.productWeight}
+              onChange={(e) => set({ productWeight: Math.max(0, Number(e.target.value)) })}
+              placeholder="Ex. 250"
+              className="w-full p-2.5 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:bg-white font-mono"
+            />
+          </Field>
+          <Field label="Packed Weight (grams)">
+            <input
+              type="number"
+              min={0}
+              value={state.packedWeight}
+              onChange={(e) => set({ packedWeight: Math.max(0, Number(e.target.value)) })}
+              placeholder="Ex. 320"
+              className="w-full p-2.5 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:bg-white font-mono"
+            />
+          </Field>
+        </div>
+        <p className="text-[10px] text-gray-400 font-medium -mt-1">
+          Packed weight includes box + bubble wrap + label and is used for shipping charges.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Therapeutic Category" required>
             <select
               value={state.category}
@@ -214,6 +246,16 @@ export default function ProductForm({ state, editingId, onChange, onSubmit, onCa
           media={state.media}
           onChange={(media) => set({ media })}
         />
+
+        <Field label="YouTube Video Embed URL (Optional)">
+          <input
+            type="url"
+            value={state.youtubeUrl}
+            onChange={(e) => set({ youtubeUrl: e.target.value })}
+            placeholder="https://www.youtube.com/embed/VIDEO_ID"
+            className="w-full p-2.5 bg-gray-50 border border-gray-150 rounded-xl text-xs focus:bg-white font-mono"
+          />
+        </Field>
 
         <SizeSelector
           size={state.size}

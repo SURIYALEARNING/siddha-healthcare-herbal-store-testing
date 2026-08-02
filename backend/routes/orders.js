@@ -31,6 +31,7 @@ router.post("/orders", verifyToken, async (req, res) => {
     paymentMethod,
     couponCode,
     razorpayPaymentId,
+    courierId,
   } = req.body;
 
   if (!items?.length || !shippingAddress || !mobileNumber || !fullName || !paymentMethod) {
@@ -41,7 +42,7 @@ router.post("/orders", verifyToken, async (req, res) => {
   session.startTransaction();
 
   try {
-    const calculated = await calculateOrder({ items, couponCode });
+    const calculated = await calculateOrder({ items, couponCode, shippingAddress, courierId });
 
     for (const item of calculated.items) {
       const allocations = await allocateFromBatches(item.productId, item.quantity, session);
@@ -77,6 +78,10 @@ router.post("/orders", verifyToken, async (req, res) => {
       subtotal: calculated.subtotal,
       couponDiscount: calculated.couponDiscount,
       deliveryCharges: calculated.deliveryCharges,
+      packedWeight: calculated.packedWeight,
+      shippingZone: calculated.shippingZone,
+      courierCompanyId: calculated.shippingCourierId,
+      courierName: calculated.shippingCourierName,
       total: calculated.total,
       appliedCouponCode: calculated.appliedCouponCode,
       currentStatus: ORDER_STATUSES.PENDING,

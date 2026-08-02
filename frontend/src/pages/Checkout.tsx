@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../context/AppContext";
 import ShippingForm from "../components/checkout/ShippingForm";
 import PaymentSelector from "../components/checkout/PaymentSelector";
+import CourierSelector from "../components/checkout/CourierSelector";
 import OrderSummary from "../components/checkout/OrderSummary";
 import { fetchRazorpayConfigApi, createRazorpayOrderApi, verifyRazorpayPaymentApi } from "../api";
+import { calculateShippingApi } from "../api/shipping";
+import type { ShippingOption } from "../types";
 
 function loadRazorpayScript(): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -35,10 +38,23 @@ export default function Checkout() {
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [validationError, setValidationError] = useState("");
 
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [packedWeight, setPackedWeight] = useState(0);
+  const [selectedCourierId, setSelectedCourierId] = useState("");
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState("");
+
   const subtotal = cart.reduce((acc, item) => acc + item.discountPrice * item.quantity, 0);
   const discountAmount = activeCoupon ? Math.round(subtotal * (activeCoupon.percent / 100)) : 0;
-  const deliveryCharges = subtotal > 500 ? 0 : 50;
+
+  const selectedCourier = shippingOptions.find((o) => o.courierId === selectedCourierId) || null;
+  const shippingCharge = selectedCourier?.charge ?? 0;
+  const hasShipping = selectedCourier != null;
+  const deliveryCharges = hasShipping ? shippingCharge : 0;
   const total = subtotal - discountAmount + deliveryCharges;
+
+  const validPincode = /^[0-9]{6}$/.test(pincode);
+  const validAddress = !!(state && district && validPincode);
 
   useEffect(() => {
     if (user) {
@@ -60,6 +76,54 @@ export default function Checkout() {
     }
   }, [cart, navigate, orderSubmitting]);
 
+  const recalcShipping = useCallback(() => {
+    if (!validAddress || cart.length === 0) {
+      setShippingOptions([]);
+      setSelectedCourierId("");
+      setPackedWeight(0);
+      setShippingError("");
+      return;
+    }
+
+    let cancelled = false;
+    setShippingLoading(true);
+    setShippingError("");
+
+    calculateShippingApi({
+      items: cart.map((c) => ({ productId: c.productId, quantity: c.quantity })),
+      pincode,
+      state,
+      district,
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setPackedWeight(res.packedWeight || 0);
+        const options = res.options || [];
+        setShippingOptions(options);
+        setSelectedCourierId((prev) => {
+          const available = options.map((o) => o.courierId);
+          if (prev && available.includes(prev)) return prev;
+          return res.selected?.courierId || options[0]?.courierId || "";
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setShippingOptions([]);
+        setSelectedCourierId("");
+        setPackedWeight(0);
+        setShippingError(t('checkout.validation.shippingUnavailable') || "Could not calculate shipping for this address.");
+      })
+      .finally(() => {
+        if (!cancelled) setShippingLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [validAddress, cart, pincode, state, district, t]);
+
+  useEffect(() => {
+    return recalcShipping();
+  }, [recalcShipping]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError("");
@@ -77,12 +141,22 @@ export default function Checkout() {
       return;
     }
 
+    if (shippingLoading) {
+      setValidationError(t('checkout.validation.shippingLoading'));
+      return;
+    }
+    if (!selectedCourier) {
+      setValidationError(t('checkout.validation.shippingRequired'));
+      return;
+    }
+
     setOrderSubmitting(true);
 
     const shippingAddress = { address, state, district, pincode };
+    const courierId = selectedCourier?.courierId;
 
     if (paymentMethod === "Cash on Delivery") {
-      const placedOrder = await submitOrder(shippingAddress, mobileNumber, email, fullName, paymentMethod);
+      const placedOrder = await submitOrder(shippingAddress, mobileNumber, email, fullName, paymentMethod, undefined, courierId);
       setOrderSubmitting(false);
       if (placedOrder) navigate("/track-order", { state: { justPlacedId: placedOrder.id } });
     } else {
@@ -93,6 +167,8 @@ export default function Checkout() {
         const orderData = await createRazorpayOrderApi({
           items: cart.map(c => ({ productId: c.productId, quantity: c.quantity })),
           couponCode: activeCoupon?.code,
+          shippingAddress,
+          courierId,
         });
         if (!orderData) throw new Error("Failed to create Razorpay order");
 
@@ -113,7 +189,7 @@ export default function Checkout() {
             if (verified?.success) {
               const placedOrder = await submitOrder(
                 shippingAddress, mobileNumber, email, fullName, paymentMethod,
-                verified.razorpayPaymentId
+                verified.razorpayPaymentId, courierId
               );
               setOrderSubmitting(false);
               if (placedOrder) navigate("/track-order", { state: { justPlacedId: placedOrder.id } });
@@ -151,6 +227,18 @@ export default function Checkout() {
             pincode={pincode} setPincode={setPincode}
             validationError={validationError} error={error} user={user}
           />
+          {shippingError && (
+            <p className="p-3 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-xs font-bold">
+              {shippingError}
+            </p>
+          )}
+          <CourierSelector
+            options={shippingOptions}
+            selectedCourierId={selectedCourierId}
+            onSelect={setSelectedCourierId}
+            packedWeight={packedWeight}
+            loading={shippingLoading}
+          />
           <PaymentSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
         </div>
         <OrderSummary
@@ -158,6 +246,9 @@ export default function Checkout() {
           subtotal={subtotal}
           discountAmount={discountAmount}
           deliveryCharges={deliveryCharges}
+          shippingCharge={shippingCharge}
+          packedWeight={packedWeight}
+          shippingCourierName={selectedCourier?.courierName}
           total={total}
           hasCoupon={!!activeCoupon}
           orderSubmitting={orderSubmitting}

@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAdminOrdersApi, getOrderStatsApi, getCustomersListApi, getCustomerOrdersApi, adminUpdateOrderStatusApi, getOrderTimelineApi } from "../../api/orders";
+import { createRemindersForOrder } from "../../api/reminders";
+import { useToastContext } from "../../context/ToastContext";
 import type { Order, PaginatedOrders, OrderStats, TimelineEvent, OrderFulfillmentStatus } from "../../types";
-import { Eye, Search, X, ArrowLeft, Truck, PackageCheck, Clock, CheckCircle, Ban } from "lucide-react";
+import OrderTrackingModal from "./OrderTrackingModal";
+import { Eye, Search, X, ArrowLeft, Truck, PackageCheck, Clock, CheckCircle, Ban, PackageSearch } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   Pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -21,9 +24,41 @@ const FULFILLMENT_STATUSES: OrderFulfillmentStatus[] = [
   "Cancelled", "Returned", "Refunded",
 ];
 
+const NEXT_MAP: Record<string, string[]> = {
+  Pending: ["Confirmed"],
+  Confirmed: ["Packed"],
+  Packed: ["Ready To Ship"],
+  "Ready To Ship": [],
+  Shipped: ["Out For Delivery"],
+  "Out For Delivery": [],
+  Delivered: [],
+  Cancelled: [],
+  Returned: [],
+  Refunded: [],
+};
+
+const TERMINAL = ["Delivered", "Cancelled", "Returned", "Refunded"];
+
+function canShip(status?: string) {
+  return ["Packed", "Ready To Ship"].includes(status || "");
+}
+
+function canDeliver(status?: string) {
+  return ["Shipped", "Out For Delivery"].includes(status || "");
+}
+
+function nextOptions(status?: string) {
+  const s = status || "";
+  if (TERMINAL.includes(s)) return [];
+  const opts = [...(NEXT_MAP[s] || [])];
+  if (!TERMINAL.includes(s) && s.toLowerCase() !== "cancelled") opts.push("Cancelled");
+  return Array.from(new Set(opts));
+}
+
 type ViewMode = "orders" | "customers";
 
 export default function OrdersTab() {
+  const { showSuccess, showError } = useToastContext();
   const [viewMode, setViewMode] = useState<ViewMode>("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
@@ -40,6 +75,9 @@ export default function OrdersTab() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderTimeline, setOrderTimeline] = useState<TimelineEvent[]>([]);
   const [showTimelineModal, setShowTimelineModal] = useState(false);
+  const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
+  const [shipOrder, setShipOrder] = useState<Order | null>(null);
+  const [deliverOrder, setDeliverOrder] = useState<Order | null>(null);
 
   const [customers, setCustomers] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -121,6 +159,18 @@ export default function OrdersTab() {
       fetchOrders();
       fetchStats();
     } catch {}
+  };
+
+  const handleCreateReminders = async (o: Order) => {
+    const orderId = o.id || o._id!;
+    try {
+      const res = await createRemindersForOrder(orderId);
+      showSuccess("Reminder", `Created ${res?.count ?? 0} medicine reminder(s) from the delivered order.`);
+      fetchOrders();
+      fetchStats();
+    } catch (err: any) {
+      showError("Reminder Failed", err?.response?.data?.error || "Could not create reminders.");
+    }
   };
 
   const handleViewTimeline = async (order: Order) => {
@@ -408,16 +458,51 @@ export default function OrdersTab() {
                             <button onClick={() => handleViewTimeline(o)} className="p-1.5 text-gray-400 hover:text-siddha-dark cursor-pointer" title="Timeline">
                               <Eye className="w-3.5 h-3.5" />
                             </button>
+                            <button onClick={() => setTrackingOrder(o)} className="p-1.5 text-gray-400 hover:text-siddha-dark cursor-pointer" title="Manage Tracking">
+                              <PackageSearch className="w-3.5 h-3.5" />
+                            </button>
                             {(!o.shippingMethod || o.shippingMethod === "MANUAL") && (
-                              <select
-                                value={o.currentStatus || o.status}
-                                onChange={(e) => handleUpdateStatus(o.id || o._id!, e.target.value)}
-                                className="p-1 border border-gray-150 bg-gray-50 text-[10px] font-bold rounded-lg cursor-pointer max-w-28 focus:outline-none"
-                              >
-                                {FULFILLMENT_STATUSES.map((s) => (
-                                  <option key={s} value={s}>{s}</option>
-                                ))}
-                              </select>
+                              <div className="flex items-center justify-end gap-1">
+                                {canShip(o.currentStatus || o.status) && (
+                                  <button
+                                    onClick={() => setShipOrder(o)}
+                                    title="Ship Order"
+                                    className="px-2 py-1 text-[10px] font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer whitespace-nowrap"
+                                  >
+                                    Ship Order
+                                  </button>
+                                )}
+                                {canDeliver(o.currentStatus || o.status) && (
+                                  <button
+                                    onClick={() => setDeliverOrder(o)}
+                                    title="Mark Delivered"
+                                    className="px-2 py-1 text-[10px] font-bold rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 cursor-pointer whitespace-nowrap"
+                                  >
+                                    Mark Delivered
+                                  </button>
+                                )}
+                                {nextOptions(o.currentStatus || o.status).length > 0 && (
+                                  <select
+                                    defaultValue=""
+                                    onChange={(e) => { if (e.target.value) handleUpdateStatus(o.id || o._id!, e.target.value); }}
+                                    className="p-1 border border-gray-150 bg-gray-50 text-[10px] font-bold rounded-lg cursor-pointer max-w-28 focus:outline-none"
+                                  >
+                                    <option value="" disabled>Update…</option>
+                                    {nextOptions(o.currentStatus || o.status).map((s) => (
+                                      <option key={s} value={s}>{s}</option>
+                                    ))}
+                                  </select>
+                                )}
+                                {(o.currentStatus || o.status) === "Delivered" && (
+                                  <button
+                                    onClick={() => handleCreateReminders(o)}
+                                    title="Create medicine reminder from this delivered order"
+                                    className="px-2 py-1 text-[10px] font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 cursor-pointer whitespace-nowrap"
+                                  >
+                                    Create Reminder
+                                  </button>
+                                )}
+                              </div>
                             )}
                             {o.shippingMethod === "SHIPROCKET" && (
                               <span className="text-[9px] text-gray-400 italic py-1">Auto-track</span>
@@ -504,6 +589,30 @@ export default function OrdersTab() {
       {showTimelineModal && selectedOrder && (
         <TimelineModal order={selectedOrder} timeline={orderTimeline} onClose={() => setShowTimelineModal(false)} />
       )}
+      {trackingOrder && (
+        <OrderTrackingModal
+          order={trackingOrder}
+          intent="MANAGE"
+          onClose={() => setTrackingOrder(null)}
+          onSaved={() => { fetchOrders(); fetchStats(); }}
+        />
+      )}
+      {shipOrder && (
+        <OrderTrackingModal
+          order={shipOrder}
+          intent="SHIP"
+          onClose={() => setShipOrder(null)}
+          onSaved={() => { fetchOrders(); fetchStats(); }}
+        />
+      )}
+      {deliverOrder && (
+        <OrderTrackingModal
+          order={deliverOrder}
+          intent="DELIVER"
+          onClose={() => setDeliverOrder(null)}
+          onSaved={() => { fetchOrders(); fetchStats(); }}
+        />
+      )}
     </div>
   );
 }
@@ -528,7 +637,10 @@ function TimelineModal({ order, timeline, onClose }: { order: Order; timeline: T
           <div><span className="font-bold text-gray-400">Payment:</span> {order.paymentStatus}</div>
           <div><span className="font-bold text-gray-400">Total:</span> ₹{order.total}</div>
           {order.tracking?.courierName && <div><span className="font-bold text-gray-400">Courier:</span> {order.tracking.courierName}</div>}
-          {order.tracking?.awbNumber && <div><span className="font-bold text-gray-400">AWB:</span> {order.tracking.awbNumber}</div>}
+          {order.tracking?.awbNumber && <div><span className="font-bold text-gray-400">AWB:</span> <span className="font-mono">{order.tracking.awbNumber}</span></div>}
+          {order.packedAt && <div><span className="font-bold text-gray-400">Packed:</span> {new Date(order.packedAt).toLocaleString()}</div>}
+          {order.tracking?.shippedAt && <div><span className="font-bold text-gray-400">Shipped:</span> {new Date(order.tracking.shippedAt).toLocaleString()}</div>}
+          {order.deliveredAt && <div><span className="font-bold text-gray-400">Delivered:</span> {new Date(order.deliveredAt).toLocaleString()}</div>}
         </div>
 
         <div className="relative pl-6 space-y-0">

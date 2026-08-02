@@ -11,6 +11,7 @@ export interface CheckoutPayload {
   paymentMethod: string;
   couponCode?: string;
   razorpayPaymentId?: string;
+  courierId?: string;
 }
 
 interface SubmitOrderResponse {
@@ -123,6 +124,22 @@ export const updateManualShippingStatusApi = async (
   } catch (error) {
     handleApiError("updateManualShippingStatusApi", error);
   }
+};
+
+export const updateOrderTrackingApi = async (
+  orderId: string,
+  data: {
+    courierId?: string;
+    courierName?: string;
+    awbNumber?: string;
+    trackingUrl?: string;
+    courierReceiptImage?: string;
+    shippingNotes?: string;
+    shipmentStatus?: string;
+  }
+): Promise<Order> => {
+  const res = await client.put(`/api/admin/orders/${orderId}/tracking`, data);
+  return res.data.order;
 };
 
 export const getCustomersListApi = async (): Promise<any[]> => {

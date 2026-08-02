@@ -15,6 +15,7 @@ const ALL_TABS: { id: TabId; label: string; Icon: typeof LayoutDashboard; permis
   { id: "consultations", label: "Doctor Consults", Icon: Users, permission: "consultations" },
   { id: "orders", label: "Live Orders", Icon: CalendarClock, permission: "orders" },
   { id: "shipping", label: "Shipping & Delivery", Icon: Truck, permission: "shipping" },
+  { id: "shippingManagement", label: "Shipping Management", Icon: Truck, permission: "shipping" },
   { id: "carousel", label: "Promo Carousel", Icon: Images, permission: "carousel" },
   { id: "batches", label: "Batch Management", Icon: Package, permission: "batches" },
   { id: "reminders", label: "Medicine Reminders", Icon: BellRing, permission: "reminders" },

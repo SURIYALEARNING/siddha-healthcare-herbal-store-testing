@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { ChevronLeft, Truck, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { ChevronLeft, Truck, CheckCircle, XCircle, Loader2, Youtube } from "lucide-react";
 import ImageGallery from "../components/product/ImageGallery";
 import ProductInfo from "../components/product/ProductInfo";
 import ProductActions from "../components/product/ProductActions";
@@ -32,6 +32,17 @@ function getCategoryName(cat: any, lang: string): string {
   if (!cat) return "";
   if (typeof cat === "string") return cat;
   return getVal(cat.name, lang) || cat._id || "";
+}
+
+function getYoutubeEmbedUrl(url: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("https://www.youtube.com/embed/")) return trimmed;
+  const match =
+    trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{11})/) ||
+    trimmed.match(/(?:youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  return "";
 }
 
 export default function ProductDetails() {
@@ -282,6 +293,34 @@ export default function ProductDetails() {
         storageInstructions={storageInstructions}
         tags={tags}
       />
+
+      {getYoutubeEmbedUrl(product.youtubeUrl || "") && (
+        <section className="mt-10 bg-white rounded-3xl border border-gray-100 p-6 sm:p-10">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+              <Youtube className="w-5 h-5 text-rose-600" />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold font-display text-emerald-950 tracking-tight">
+                {t('productDetails.productVideo')}
+              </h2>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                {t('productDetails.productVideoSub')}
+              </p>
+            </div>
+          </div>
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-inner">
+            <iframe
+              src={getYoutubeEmbedUrl(product.youtubeUrl || "")}
+              title={productName}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </section>
+      )}
 
       <ReviewSection
         productId={product._id}

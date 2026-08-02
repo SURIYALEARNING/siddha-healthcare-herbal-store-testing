@@ -1,43 +1,43 @@
+import { useState, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Award, Leaf, Shield, UserCheck, Heart } from "lucide-react";
 import SupportCarousel from "../components/SupportCarousel";
 import SocialProductMarquee from "../components/SocialProductMarquee";
+import type { SocialItem } from "../components/SocialProductMarquee";
+import { fetchSocialProductsApi as fetchSocialProducts } from "../api/carousel";
 import AboutHeroSection from "../components/About";
 import video from "../assets/PUTHAR-AI-WEBSITE-VIDEO.mp4";
 
-const socialItems = [
-  {
-    id: "herbgate",
-    title: "Herbgate",
-    image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=600&h=700",
-    social: "instagram" as const,
-    url: "https://instagram.com/yourreel1",
-  },
-  {
-    id: "gelucon",
-    title: "Gelucon",
-    image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&q=80&w=600&h=700",
-    social: "youtube" as const,
-    url: "https://youtube.com/yourvideo1",
-  },
-  {
-    id: "osteoherb",
-    title: "Osteoherb",
-    image: "https://images.unsplash.com/photo-1599639085605-a34414b6d32c?auto=format&fit=crop&q=80&w=600&h=700",
-    social: "facebook" as const,
-    url: "https://facebook.com/yourpage1",
-  },
-  {
-    id: "ayush-cure",
-    title: "Ayush Cure",
-    image: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&q=80&w=600&h=700",
-    social: "tiktok" as const,
-    url: "https://tiktok.com/@yourchannel",
-  },
-];
+function getTransValue(val: any, lang: string): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || "";
+}
 
 export default function About() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const [socialItems, setSocialItems] = useState<SocialItem[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const entries = await fetchSocialProducts();
+      if (!active) return;
+      setSocialItems(
+        entries.map((sp) => ({
+          id: sp.product._id,
+          title: getTransValue(sp.product.name, lang),
+          image: sp.product.media?.[0]?.url || sp.product.images?.[0] || "",
+          social: sp.social,
+          url: sp.url,
+        }))
+      );
+    })();
+    return () => {
+      active = false;
+    };
+  }, [lang]);
 
   return (
     <div className="space-y-16 pb-20">
@@ -145,13 +145,19 @@ export default function About() {
             {t("about.socialHeading")}
           </h2>
         </div>
-        <SocialProductMarquee
-          items={socialItems}
-          speed={30}
-          pauseOnHover
-          cardWidth={260}
-          cardHeight={320}
-        />
+        {socialItems.length > 0 ? (
+          <SocialProductMarquee
+            items={socialItems}
+            speed={30}
+            pauseOnHover
+            cardWidth={260}
+            cardHeight={320}
+          />
+        ) : (
+          <p className="text-center text-xs text-gray-400 pb-6">
+            No social products configured yet. Add them in the Admin panel.
+          </p>
+        )}
       </section>
 
     </div>

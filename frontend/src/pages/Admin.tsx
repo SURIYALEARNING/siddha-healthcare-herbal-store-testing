@@ -10,6 +10,7 @@ import OrdersTab from "../components/admin/OrdersTab";
 import CouponsTab from "../components/admin/CouponsTab";
 import ConsultationsTab from "../components/admin/ConsultationsTab";
 import ShippingTab from "../components/admin/ShippingTab";
+import ShippingManagementTab from "../components/admin/ShippingManagementTab";
 import ManageCategories from "./admin/ManageCategories";
 import CarouselTab from "../components/admin/CarouselTab";
 import BatchTab from "../components/admin/BatchTab";
@@ -70,7 +71,7 @@ export default function Admin() {
       orders: "orders", customers: "customers", batches: "batches",
       reminders: "reminders", reviews: "reviews", coupons: "coupons",
       carousel: "carousel", consultations: "consultations", shipping: "shipping",
-      staffManagement: "staffManagement", blogs: "blogs",
+      shippingManagement: "shipping", staffManagement: "staffManagement", blogs: "blogs",
     };
     const key = permMap[tab];
     if (!key) return false;
@@ -136,6 +137,10 @@ export default function Admin() {
 
           {safeActiveTab === "shipping" && (
             <ShippingTab />
+          )}
+
+          {safeActiveTab === "shippingManagement" && (
+            <ShippingManagementTab />
           )}
 
           {safeActiveTab === "reviews" && (

@@ -5,7 +5,7 @@ import { User } from "../models/User.js";
 
 const ACTIVE_STATUSES = ["PENDING", "WHATSAPP_SENT", "CALL_PENDING"];
 
-function computeReminderDate(fromDate, reminderDays, quantity) {
+export function computeReminderDate(fromDate, reminderDays, quantity) {
   const totalDays = reminderDays * quantity;
   if (totalDays <= 0) return null;
   const date = new Date(fromDate);
@@ -13,9 +13,18 @@ function computeReminderDate(fromDate, reminderDays, quantity) {
   return date;
 }
 
-export async function createOrderReminders(order) {
+export function getOrderDeliveredDate(order) {
+  if (!order) return null;
+  const delivered =
+    order.deliveredAt ||
+    (order.tracking && order.tracking.deliveredAt) ||
+    (order.shipment && order.shipment.deliveredAt);
+  return delivered ? new Date(delivered) : null;
+}
+
+export async function createOrderReminders(order, options = {}) {
   const customerId = order.userId;
-  const deliveryDate = new Date();
+  const deliveryDate = options.deliveryDate || getOrderDeliveredDate(order) || new Date();
   const reminders = [];
 
   for (let i = 0; i < order.items.length; i++) {
@@ -56,17 +65,19 @@ export async function createOrderReminders(order) {
   return reminders;
 }
 
-export async function maybeCreateRemindersForOrder(orderId) {
+export async function maybeCreateRemindersForOrder(orderId, options = {}) {
   const order = await Order.findById(orderId).lean();
   if (!order) return [];
 
   const isDelivered =
     order.shippingStatus === "DELIVERED" ||
+    order.currentStatus === "Delivered" ||
     order.status === "Delivered";
 
   if (!isDelivered) return [];
 
-  return createOrderReminders(order);
+  const deliveredDate = options.deliveryDate || getOrderDeliveredDate(order) || undefined;
+  return createOrderReminders(order, deliveredDate ? { deliveryDate: deliveredDate } : {});
 }
 
 export async function getTodayReminders() {

@@ -5,6 +5,11 @@ const carouselSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
   }],
+  socialProducts: [{
+    product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    social: { type: String, enum: ["instagram", "youtube", "facebook", "tiktok"], default: "instagram" },
+    url: { type: String, default: "" },
+  }],
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

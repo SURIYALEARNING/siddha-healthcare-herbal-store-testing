@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { INDIAN_STATES } from "../../constants/indianStates";
 
 interface ShippingFormProps {
   fullName: string; setFullName: (v: string) => void;
@@ -91,10 +92,9 @@ export default function ShippingForm({
             <label className="text-[10px] font-bold text-gray-400 uppercase">{t('checkout.state')}</label>
             <select value={state} onChange={(e) => setState(e.target.value)}
               className="w-full p-2.5 bg-gray-50 border border-gray-150 focus:border-siddha-dark rounded-xl text-xs text-gray-700 font-semibold cursor-pointer">
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Kerala">Kerala</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              {INDIAN_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
             </select>
           </div>
           <div className="space-y-1">

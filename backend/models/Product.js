@@ -14,6 +14,8 @@ const productSchema = new mongoose.Schema({
   },
   price: { type: Number, required: true },
   discountPrice: { type: Number },
+  productWeight: { type: Number, min: 0, default: 0 },
+  packedWeight: { type: Number, min: 0, default: 0 },
   size: {
     value: { type: Number, default: 0 },
     unit: {
@@ -28,6 +30,7 @@ const productSchema = new mongoose.Schema({
   safetyInstructions: [{ type: translationSchema, default: { en: "", ta: "" } }],
   storageInstructions: [{ type: translationSchema, default: { en: "", ta: "" } }],
   tags: [{ type: translationSchema, default: { en: "", ta: "" } }],
+  youtubeUrl: { type: String, default: "" },
   images: [{ type: String }],
   media: [{
     type: { type: String, enum: ["image", "video"], required: true },

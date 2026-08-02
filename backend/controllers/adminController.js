@@ -1,11 +1,22 @@
 import { buildAnalytics } from '../services/analyticsService.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import Courier from '../models/Courier.js';
 import { User } from '../models/User.js';
 import Consultation from '../models/Consultation.js';
 import { maybeCreateRemindersForOrder } from '../services/reminderService.js';
 import { addTimelineEvent, addPaymentTimelineEvent } from '../services/timelineService.js';
 import { ORDER_STATUSES, TERMINAL_STATUSES } from '../constants/orderStatus.js';
+
+const ALLOWED_NEXT = {
+  [ORDER_STATUSES.PENDING]: [ORDER_STATUSES.CONFIRMED],
+  [ORDER_STATUSES.CONFIRMED]: [ORDER_STATUSES.PACKED],
+  [ORDER_STATUSES.PACKED]: [ORDER_STATUSES.READY_TO_SHIP],
+  [ORDER_STATUSES.READY_TO_SHIP]: [],
+  [ORDER_STATUSES.SHIPPED]: [ORDER_STATUSES.OUT_FOR_DELIVERY],
+  [ORDER_STATUSES.OUT_FOR_DELIVERY]: [],
+  [ORDER_STATUSES.DELIVERED]: [],
+};
 
 export async function getAdminOrders(req, res) {
   try {
@@ -116,6 +127,7 @@ export async function updateOrderStatus(req, res) {
     }
 
     if (status) {
+      const current = order.currentStatus || order.status;
       const isTerminal = TERMINAL_STATUSES.includes(status);
       if (!isTerminal && order.shippingMethod === "SHIPROCKET") {
         return res.status(400).json({
@@ -123,8 +135,24 @@ export async function updateOrderStatus(req, res) {
         });
       }
 
+      if (status === ORDER_STATUSES.SHIPPED || status === ORDER_STATUSES.DELIVERED) {
+        return res.status(400).json({
+          error: `"${status}" must be performed through the shipping workflow with tracking details.`,
+        });
+      }
+
+      if (!isTerminal && status !== current && !(ALLOWED_NEXT[current] || []).includes(status)) {
+        return res.status(400).json({
+          error: `Invalid status transition from "${current}" to "${status}".`,
+        });
+      }
+
       updateFields.status = status;
       updateFields.currentStatus = status;
+
+      if (status === ORDER_STATUSES.PACKED && !order.packedAt) {
+        updateFields.packedAt = new Date();
+      }
 
       const event = await addTimelineEvent({
         orderId,
@@ -133,13 +161,6 @@ export async function updateOrderStatus(req, res) {
         updatedBy: req.user?.id || "STAFF",
         source: "STAFF",
       });
-
-      if (status === ORDER_STATUSES.DELIVERED) {
-        updateFields["tracking.deliveredAt"] = new Date();
-        maybeCreateRemindersForOrder(orderId).catch((err) =>
-          console.error("Failed to create delivery reminders:", err)
-        );
-      }
     }
 
     const updated = await Order.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true });
@@ -161,7 +182,7 @@ export async function updateManualShippingStatus(req, res) {
       return res.status(400).json({ error: "Only manual shipping orders can use this endpoint." });
     }
 
-    const event = await addTimelineEvent({
+    await addTimelineEvent({
       orderId,
       status,
       description: description || undefined,
@@ -169,20 +190,155 @@ export async function updateManualShippingStatus(req, res) {
       source: "STAFF",
     });
 
+    const updateFields = { status, currentStatus: status };
+    if (status === ORDER_STATUSES.DELIVERED) {
+      updateFields.deliveredAt = new Date();
+      updateFields["tracking.deliveredAt"] = new Date();
+    }
+
+    const updated = await Order.findByIdAndUpdate(
+      orderId,
+      { $set: updateFields },
+      { new: true }
+    );
+
     if (status === ORDER_STATUSES.DELIVERED) {
       maybeCreateRemindersForOrder(orderId).catch((err) =>
         console.error("Failed to create delivery reminders:", err)
       );
     }
 
-    const updated = await Order.findByIdAndUpdate(
-      orderId,
-      { $set: { status, currentStatus: status } },
-      { new: true }
-    );
     res.json({ message: "Shipping status updated!", order: updated });
   } catch (error) {
     res.status(500).json({ error: "Failed to update shipping status." });
+  }
+}
+
+export async function updateOrderTracking(req, res) {
+  try {
+    const {
+      courierId, courierName, awbNumber, trackingUrl,
+      courierReceiptImage, shippingNotes, shipmentStatus,
+    } = req.body;
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ error: "Order not found." });
+
+    const existingName = order.courierName || order.tracking?.courierName || "";
+    const existingNumber = order.awbCode || order.tracking?.awbNumber || "";
+    const existingUrl = order.trackingLink || order.tracking?.trackingUrl || "";
+
+    const updateFields = {};
+    let courierSiteUrl = "";
+
+    // Resolve courier company (selecting a known courier takes precedence over free-text name)
+    if (courierId) {
+      const courier = await Courier.findById(courierId).lean();
+      if (courier) {
+        updateFields.courierCompanyId = courierId;
+        if (!courierName) updateFields.courierName = courier.name;
+        courierSiteUrl = courier.trackingUrl || "";
+      }
+    }
+    if (courierName) updateFields.courierName = String(courierName);
+
+    const finalCourier = !!(updateFields.courierName || existingName);
+    const finalCourierName = updateFields.courierName || existingName;
+    if (finalCourierName) updateFields["tracking.courierName"] = finalCourierName;
+
+    const finalTrackingNumber = (awbNumber !== undefined && String(awbNumber).trim())
+      ? String(awbNumber).trim()
+      : existingNumber;
+    if (awbNumber !== undefined && String(awbNumber).trim() && String(awbNumber).trim() !== existingNumber) {
+      updateFields.awbCode = String(awbNumber).trim();
+      updateFields["tracking.awbNumber"] = String(awbNumber).trim();
+    }
+
+    const finalTrackingUrl = (trackingUrl !== undefined && String(trackingUrl).trim())
+      ? String(trackingUrl).trim()
+      : (existingUrl || courierSiteUrl);
+    if (String(finalTrackingUrl) !== existingUrl) {
+      updateFields.trackingLink = finalTrackingUrl;
+      updateFields["tracking.trackingUrl"] = finalTrackingUrl;
+    }
+
+    if (courierReceiptImage !== undefined) updateFields.courierReceiptImage = String(courierReceiptImage);
+    if (shippingNotes !== undefined) updateFields.shippingNotes = String(shippingNotes);
+
+    if (shipmentStatus) {
+      if (shipmentStatus === "SHIPPED") {
+        if (!finalCourier) {
+          return res.status(400).json({ error: "A courier company is required to ship the order." });
+        }
+        if (!finalTrackingNumber) {
+          return res.status(400).json({ error: "Tracking number is required to mark the order as shipped." });
+        }
+        updateFields.status = "Shipped";
+        updateFields.currentStatus = "Shipped";
+        updateFields["tracking.shippedAt"] = new Date();
+        updateFields.shippingStatus = "SHIPPED";
+      } else if (shipmentStatus === "DELIVERED") {
+        const current = order.currentStatus || order.status;
+        if (!["Shipped", "Out For Delivery"].includes(current)) {
+          return res.status(400).json({
+            error: `An order in "${current}" status cannot be marked as delivered.`,
+          });
+        }
+        updateFields.status = "Delivered";
+        updateFields.currentStatus = "Delivered";
+        updateFields["tracking.deliveredAt"] = new Date();
+        updateFields.deliveredAt = new Date();
+        updateFields.shippingStatus = "DELIVERED";
+      } else if (["CANCELLED", "RETURNED"].includes(shipmentStatus)) {
+        updateFields.status = shipmentStatus === "CANCELLED" ? "Cancelled" : "Returned";
+        updateFields.currentStatus = updateFields.status;
+        updateFields.shippingStatus = shipmentStatus;
+      } else {
+        updateFields.shippingStatus = shipmentStatus;
+      }
+    }
+
+    const updated = await Order.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true });
+
+    const changed =
+      !!shipmentStatus ||
+      (awbNumber !== undefined && String(awbNumber).trim()) ||
+      !!courierId || !!courierName ||
+      (shippingNotes !== undefined && String(shippingNotes).trim()) ||
+      (courierReceiptImage !== undefined && String(courierReceiptImage).trim());
+
+    if (changed) {
+      let description = "";
+      if (shipmentStatus === "SHIPPED") {
+        description = `Shipped via ${finalCourierName || "courier"}${finalTrackingNumber ? ` | Tracking: ${finalTrackingNumber}` : ""}`;
+      } else if (shipmentStatus === "DELIVERED") {
+        description = `Delivered${finalTrackingNumber ? ` | Tracking: ${finalTrackingNumber}` : ""}`;
+      } else if (shipmentStatus) {
+        description = `Shipment marked as ${shipmentStatus.replace(/_/g, " ")}`;
+      } else {
+        description = "Tracking details updated";
+      }
+
+      await addTimelineEvent({
+        orderId,
+        status: updated.currentStatus || "Shipped",
+        description,
+        updatedBy: req.user?.id || "STAFF",
+        source: "STAFF",
+      });
+    }
+
+    if (shipmentStatus === "DELIVERED") {
+      maybeCreateRemindersForOrder(orderId).catch((err) =>
+        console.error("Failed to create delivery reminders:", err)
+      );
+    }
+
+    res.json({ message: "Order tracking updated!", order: updated });
+  } catch (error) {
+    console.error("Failed to update order tracking:", error);
+    res.status(500).json({ error: "Failed to update order tracking." });
   }
 }
 

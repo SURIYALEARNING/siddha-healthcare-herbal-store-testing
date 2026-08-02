@@ -30,6 +30,14 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+vi.mock('../../../api/shipping', () => ({
+  calculateShippingApi: vi.fn().mockResolvedValue({
+    packedWeight: 500,
+    options: [{ courierId: 'c1', courierName: 'Test Courier', charge: 60, estimatedDays: '2-3 days', serviceable: true }],
+    selected: { courierId: 'c1', courierName: 'Test Courier', charge: 60, estimatedDays: '2-3 days', serviceable: true },
+  }),
+}));
+
 vi.mock('../../../components/checkout/ShippingForm', () => ({
   default: ({ fullName, setFullName, mobileNumber, setMobileNumber, email, setEmail, address, setAddress, state, setState, district, setDistrict, pincode, setPincode, validationError, error, user }: any) => (
     <div data-testid="shipping-form">

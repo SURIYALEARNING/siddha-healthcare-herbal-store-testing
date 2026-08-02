@@ -103,7 +103,7 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
           <div className="w-full md:w-[40%] flex justify-center">
             <img
               src={logo}
-              alt="Siddha Healthcare Logo"
+              alt="SRILAKSHMI HERBALS ROCKFORT Logo"
               className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
               referrerPolicy="no-referrer"
             />
