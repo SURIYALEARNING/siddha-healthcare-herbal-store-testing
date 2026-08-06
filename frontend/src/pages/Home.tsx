@@ -76,7 +76,7 @@ export default function Home({ onConsultationClick }: { onConsultationClick: () 
       <HeroCarousel />
 
   {/* Marquee strip under Brand section */}
-      <section className="bg-siddha-dark py-6">
+      <section className="bg-siddha-dark py-6 -mt-20">
         <Marquee speed={28} gap={56}>
           <span className="text-lg sm:text-2xl lg:text-3xl font-semibold text-white">
             {t("home.marqueeText1")}

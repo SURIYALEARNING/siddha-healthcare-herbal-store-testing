@@ -18,6 +18,19 @@ export default function Auth() {
   const { loginUser, googleAuth, updateUserProfile, error } = useApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+
+  useEffect(() => {
+    if (redirectParam) {
+      sessionStorage.setItem("siddha_auth_redirect", redirectParam);
+    }
+  }, [redirectParam]);
+
+  const redirectTo = redirectParam || sessionStorage.getItem("siddha_auth_redirect");
+  const clearRedirect = () => sessionStorage.removeItem("siddha_auth_redirect");
+
+  const defaultDestination = (u: any) =>
+    u?.isAdmin || u?.role === "STAFF" || u?.role === "SUPER_ADMIN" ? "/admin" : "/account";
 
   const [googleMobile, setGoogleMobile] = useState("");
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
@@ -33,13 +46,14 @@ export default function Auth() {
         if (!userData.mobileNumber) {
           setGoogleUserData({ user: userData, accessToken });
         } else {
-          navigate(userData.isAdmin || userData.role === "STAFF" || userData.role === "SUPER_ADMIN" ? "/admin" : "/account", { replace: true });
+          navigate(redirectTo || defaultDestination(userData), { replace: true });
+          clearRedirect();
         }
       } catch (e) {
         console.error("Google auth failed:", e);
       }
     }
-  }, [searchParams, googleAuth, navigate]);
+  }, [searchParams, googleAuth, navigate, redirectTo]);
 
   const handleGoogleMobileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +66,8 @@ export default function Auth() {
     setGoogleSubmitting(false);
     if (ok) {
       const u = googleUserData.user;
-      navigate(u.isAdmin || u.role === "STAFF" || u.role === "SUPER_ADMIN" ? "/admin" : "/account", { replace: true });
+      navigate(redirectTo || defaultDestination(u), { replace: true });
+      clearRedirect();
     }
   };
 
@@ -78,7 +93,8 @@ export default function Auth() {
       setSuccess(t("auth.loginSuccess"));
       setTimeout(() => {
         const userObj = JSON.parse(localStorage.getItem("siddha_user") || "{}");
-        navigate(userObj.isAdmin || userObj.role === "STAFF" || userObj.role === "SUPER_ADMIN" ? "/admin" : "/account");
+        navigate(redirectTo || defaultDestination(userObj));
+        clearRedirect();
       }, 1500);
     }
   };
@@ -105,9 +121,13 @@ export default function Auth() {
     setLoading(true);
     try {
       await verifyOtpApi(email, otpCode);
+      await loginUser(email, password);
       setShowOtp(false);
       setSuccess(t("auth.registrationSuccess"));
-      setTimeout(() => navigate("/account"), 1500);
+      setTimeout(() => {
+        navigate(redirectTo || "/account");
+        clearRedirect();
+      }, 1500);
     } catch {
       alert(t("messages.invalidOtp"));
     }

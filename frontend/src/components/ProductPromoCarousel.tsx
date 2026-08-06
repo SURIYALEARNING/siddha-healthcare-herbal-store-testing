@@ -14,8 +14,10 @@ import "swiper/css/pagination";
 function ProductPromoCarousel() {
   const { i18n } = useTranslation();
   const lang = i18n.language;
+
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 

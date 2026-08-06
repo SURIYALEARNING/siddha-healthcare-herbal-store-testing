@@ -108,7 +108,7 @@ export default function ShippingForm({
         {!user && (
           <p className="text-[11px] bg-amber-50 text-amber-900 px-3.5 py-2.5 rounded-xl font-medium border border-amber-200">
             {t('checkout.guestMessage')}
-            <Link to="/auth" className="text-siddha-dark font-black underline ml-1">{t('checkout.loginRegister')}</Link>
+            <Link to={`/auth?redirect=${encodeURIComponent("/checkout")}`} className="text-siddha-dark font-black underline ml-1">{t('checkout.loginRegister')}</Link>
             {t('checkout.guestMessageSuffix')}
           </p>
         )}

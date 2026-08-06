@@ -156,7 +156,7 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
               </div>
             ) : (
               <Link
-                to="/auth"
+                to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`}
                 className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-siddha-light hover:bg-[#cbfcd9] text-siddha-dark border border-emerald-100 rounded-lg text-xs font-semibold transition-colors"
                 id="login-nav-btn"
               >
@@ -248,7 +248,7 @@ export default function Navbar({ onSearchToggle, onConsultationClick }: NavbarPr
                 </div>
               ) : (
                 <Link
-                  to="/auth"
+                  to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`}
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-center space-x-2 py-2.5 bg-siddha-light text-siddha-dark font-semibold rounded-lg text-sm border border-emerald-100"
                 >

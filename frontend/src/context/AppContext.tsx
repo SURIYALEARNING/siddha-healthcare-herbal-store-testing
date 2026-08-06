@@ -125,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     wishlist.setWishlist([]);
     orders.setOrders([]);
     setActiveCoupon(null);
+    sessionStorage.removeItem("siddha_auth_redirect");
   }, [auth, cart, wishlist, orders]);
 
   const updateUserProfile = useCallback(async (fullName: string, mobileNumber: string, address: Address): Promise<boolean> => {

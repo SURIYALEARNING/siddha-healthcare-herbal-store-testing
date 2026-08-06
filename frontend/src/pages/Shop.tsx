@@ -10,6 +10,7 @@ import type { Category } from "../types";
 export default function Shop() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  
   const { products, addToCart, toggleWishlist, isInWishlist } = useApp();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [dbCategories, setDbCategories] = useState<Category[]>([]);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
 import { ToastProvider, useToastContext } from "./context/ToastContext";
 import ToastContainer from "./components/Toast/ToastContainer";
@@ -201,7 +201,7 @@ function MainAppContent() {
           <Route path="/products/:id" element={<ProductDetails />} />
 
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/account" element={<Account />} />
           <Route path="/track-order" element={<TrackOrder />} />
@@ -226,6 +226,15 @@ function MainAppContent() {
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
+}
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user } = useApp();
+  const location = useLocation();
+  if (!user) {
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
+  return <>{children}</>;
 }
 
 function AppWithToast() {

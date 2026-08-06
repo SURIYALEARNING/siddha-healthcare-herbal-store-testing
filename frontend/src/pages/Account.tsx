@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import AccountHeader from "../components/account/AccountHeader";
 import AccountSidebar from "../components/account/AccountSidebar";
@@ -12,12 +12,13 @@ import type { AccountTab } from "../components/account/AccountSidebar";
 export default function Account() {
   const { user, orders, wishlist, products, updateUserProfile, logoutUser } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<AccountTab>("dashboard");
 
   useEffect(() => {
-    if (!user) navigate("/auth");
-  }, [user, navigate]);
+    if (!user) navigate(`/auth?redirect=${encodeURIComponent(location.pathname)}`);
+  }, [user, navigate, location.pathname]);
 
   if (!user) return null;
 

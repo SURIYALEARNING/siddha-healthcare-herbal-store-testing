@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import OrdersHistoryList from "../components/account/OrdersHistory";
@@ -7,10 +7,11 @@ import OrdersHistoryList from "../components/account/OrdersHistory";
 export default function OrdersHistory() {
   const { user, orders, loading } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (!user) navigate("/auth");
-  }, [user, navigate]);
+    if (!user) navigate(`/auth?redirect=${encodeURIComponent(location.pathname)}`);
+  }, [user, navigate, location.pathname]);
 
   if (!user) return null;
 
