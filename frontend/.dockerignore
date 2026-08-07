@@ -1,9 +1,0 @@
-node_modules
-dist
-coverage
-__tests__
-test-results
-playwright-report
-*.log
-.env*
-vite.err

@@ -1,16 +1,17 @@
-FROM node:20-alpine
+FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-
-# bcrypt needs a native build on alpine; install tools, build, then remove them
-RUN apk add --no-cache python3 make g++ \
-    && npm ci \
-    && apk del python3 make g++
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
 
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
+
 EXPOSE 5000
-CMD ["npx", "tsx", "server.ts"]
+CMD ["node", "server.js"]
