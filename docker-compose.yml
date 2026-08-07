@@ -52,8 +52,9 @@ services:
     networks:
       - ecommerce-network
     # HTTP only - HTTPS is terminated by the host-level nginx (deploy/)
+    # Bind to loopback only; host nginx proxies 443 -> 127.0.0.1:8080
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
 
 networks:
   ecommerce-network:

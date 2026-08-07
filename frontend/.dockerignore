@@ -1,0 +1,14 @@
+node_modules
+dist
+*.log
+*.err
+.env*
+!*.env.example
+playwright-report
+test-results
+__tests__
+.vscode
+.git
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
