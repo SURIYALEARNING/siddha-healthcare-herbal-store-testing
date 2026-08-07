@@ -1,6 +1,10 @@
 import { useTranslation } from "react-i18next";
 
-const GOOGLE_AUTH_URL = "http://localhost:5000/auth/google";
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  (import.meta.env.DEV ? "http://localhost:5000" : "");
+
+const GOOGLE_AUTH_URL = `${API_BASE}/auth/google`;
 
 export default function GoogleLoginButton() {
   const { t } = useTranslation();
